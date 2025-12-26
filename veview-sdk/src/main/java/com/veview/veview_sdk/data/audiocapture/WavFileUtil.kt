@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.audiocapture
+package com.veview.veview_sdk.data.audiocapture
 
 import java.io.File
 import java.io.RandomAccessFile

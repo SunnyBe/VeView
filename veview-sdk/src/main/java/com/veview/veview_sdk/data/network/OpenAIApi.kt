@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.network
+package com.veview.veview_sdk.data.network
 
 interface OpenAIApi {
 //    @Multipart

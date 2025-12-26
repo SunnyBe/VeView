@@ -1,17 +1,15 @@
-package com.veview.veview_sdk.reviewer
+package com.veview.veview_sdk.domain.reviewer
 
 import android.content.Context
-import com.veview.veview_sdk.configs.ConfigProvider
-import com.veview.veview_sdk.VoiceReviewState
-import com.veview.veview_sdk.analysis.OpenAIAnalysisEngine
-import com.veview.veview_sdk.audiocapture.AndroidAudioCaptureProvider
-import com.veview.veview_sdk.audiocapture.AudioCaptureProvider
-import com.veview.veview_sdk.coroutine.DispatcherProvider
-import com.veview.veview_sdk.model.ReviewContext
+import com.veview.veview_sdk.presentation.voice_review.VoiceReviewState
+import com.veview.veview_sdk.data.analysis.OpenAIAnalysisEngine
+import com.veview.veview_sdk.domain.contracts.AudioCaptureProvider
+import com.veview.veview_sdk.domain.contracts.ConfigProvider
+import com.veview.veview_sdk.domain.contracts.DispatcherProvider
+import com.veview.veview_sdk.domain.model.ReviewContext
+import com.veview.veview_sdk.domain.reviewer.VoiceReviewerImpl
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import okhttp3.OkHttpClient
 
 // TODO: Provide doc

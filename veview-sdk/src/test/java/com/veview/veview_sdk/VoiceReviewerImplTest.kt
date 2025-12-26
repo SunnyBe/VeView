@@ -2,15 +2,16 @@ package com.veview.veview_sdk
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.veview.veview_sdk.analysis.AnalysisEngine
-import com.veview.veview_sdk.audiocapture.AudioCaptureProvider
-import com.veview.veview_sdk.configs.ConfigProvider
-import com.veview.veview_sdk.configs.VoiceReviewConfig
-import com.veview.veview_sdk.coroutine.DispatcherProvider
-import com.veview.veview_sdk.model.ReviewContext
-import com.veview.veview_sdk.model.VoiceReview
-import com.veview.veview_sdk.model.VoiceReviewError
-import com.veview.veview_sdk.reviewer.VoiceReviewerImpl
+import com.veview.veview_sdk.domain.contracts.AnalysisEngine
+import com.veview.veview_sdk.domain.contracts.AudioCaptureProvider
+import com.veview.veview_sdk.domain.contracts.ConfigProvider
+import com.veview.veview_sdk.data.configs.VoiceReviewConfig
+import com.veview.veview_sdk.domain.contracts.DispatcherProvider
+import com.veview.veview_sdk.domain.model.ReviewContext
+import com.veview.veview_sdk.domain.model.VoiceReview
+import com.veview.veview_sdk.domain.model.VoiceReviewError
+import com.veview.veview_sdk.domain.reviewer.VoiceReviewerImpl
+import com.veview.veview_sdk.presentation.voice_review.VoiceReviewState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -18,6 +19,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -54,8 +56,8 @@ class VoiceReviewerImplTest {
     @Before
     fun setUp() {
         val defaultConfig = VoiceReviewConfig.Builder().setRecordDuration(1.seconds).build()
-        every { mockConfigProvider.configFlow } returns flowOf(defaultConfig)
-        coEvery { mockAudioProvider.startRecording(any(), any()) } returns fakeAudioFile
+        every { mockConfigProvider.voiceReviewConfigFlow } returns flowOf(defaultConfig)
+        coEvery { mockAudioProvider.startRecording(any(), any()) } returns (fakeAudioFile to Job())
         every { mockAudioProvider.audioStream } returns MutableSharedFlow() // A hot flow that does nothing
 
         // Create the class under test, injecting all mocks.
@@ -93,7 +95,9 @@ class VoiceReviewerImplTest {
 
                 val recordingState = awaitItem()
                 assertThat(recordingState).isInstanceOf(VoiceReviewState.Recording::class.java)
-                assertThat((recordingState as VoiceReviewState.Recording).file).isEqualTo(fakeAudioFile)
+                assertThat((recordingState as VoiceReviewState.Recording).file).isEqualTo(
+                    fakeAudioFile
+                )
 
                 testDispatcher.scheduler.advanceTimeBy(1001)
 
@@ -163,29 +167,31 @@ class VoiceReviewerImplTest {
     }
 
     @Test
-    fun `cancel() during recording transitions state to Cancelled deterministically`() = testScope.runTest {
-        val longDurationConfig = VoiceReviewConfig.Builder().setRecordDuration(30.seconds).build()
-        every { mockConfigProvider.configFlow } returns flowOf(longDurationConfig)
+    fun `cancel() during recording transitions state to Cancelled deterministically`() =
+        testScope.runTest {
+            val longDurationConfig =
+                VoiceReviewConfig.Builder().setRecordDuration(30.seconds).build()
+            every { mockConfigProvider.voiceReviewConfigFlow } returns flowOf(longDurationConfig)
 
-        voiceReviewer.state.test {
-            awaitItem() // Idle
+            voiceReviewer.state.test {
+                awaitItem() // Idle
 
-            voiceReviewer.start(ReviewContext("p1", "f1", false))
+                voiceReviewer.start(ReviewContext("p1", "f1", false))
 
-            awaitItem() // Initializing
-            runCurrent()
-            assertThat(awaitItem()).isInstanceOf(VoiceReviewState.Recording::class.java)
+                awaitItem() // Initializing
+                runCurrent()
+                assertThat(awaitItem()).isInstanceOf(VoiceReviewState.Recording::class.java)
 
-            // Act: Cancel while recording is "paused"
-            voiceReviewer.cancel()
+                // Act: Cancel while recording is "paused"
+                voiceReviewer.cancel()
 
-            // Assert: The very next state must be Cancelled
-            assertThat(awaitItem()).isEqualTo(VoiceReviewState.Cancelled)
+                // Assert: The very next state must be Cancelled
+                assertThat(awaitItem()).isEqualTo(VoiceReviewState.Cancelled)
 
-            // Ensure no other events can occur
-            ensureAllEventsConsumed()
+                // Ensure no other events can occur
+                ensureAllEventsConsumed()
+            }
         }
-    }
 
     @Test
     fun `calling start while a session is active does nothing`() = testScope.runTest {

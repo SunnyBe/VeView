@@ -1,9 +1,10 @@
-package com.veview.veview_sdk.audiocapture
+package com.veview.veview_sdk.data.audiocapture
 
 import android.content.Context
 import android.media.AudioRecord
-import com.veview.veview_sdk.configs.VoiceReviewConfig
-import com.veview.veview_sdk.coroutine.DispatcherProvider
+import com.veview.veview_sdk.data.configs.VoiceReviewConfig
+import com.veview.veview_sdk.domain.contracts.DispatcherProvider
+import com.veview.veview_sdk.domain.contracts.AudioCaptureProvider
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

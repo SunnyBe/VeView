@@ -22,10 +22,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veview.app.ui.theme.VeViewTheme
-import com.veview.veview_sdk.VeViewSDK
-import com.veview.veview_sdk.VoiceReviewState
-import com.veview.veview_sdk.configs.VoiceReviewConfig
-import com.veview.veview_sdk.model.ReviewContext
+import com.veview.veview_sdk.presentation.VeViewSDK
+import com.veview.veview_sdk.presentation.voice_review.VoiceReviewState
+import com.veview.veview_sdk.data.configs.VoiceReviewConfig
+import com.veview.veview_sdk.domain.model.ReviewContext
 import kotlin.time.Duration.Companion.minutes
 
 class MainActivity : ComponentActivity() {

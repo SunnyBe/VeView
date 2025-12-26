@@ -1,6 +1,6 @@
-package com.veview.veview_sdk.analysis
+package com.veview.veview_sdk.domain.contracts
 
-import com.veview.veview_sdk.model.VoiceReview
+import com.veview.veview_sdk.domain.model.VoiceReview
 import java.io.File
 
 interface AnalysisEngine {

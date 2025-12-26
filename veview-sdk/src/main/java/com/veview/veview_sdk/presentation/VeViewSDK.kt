@@ -1,13 +1,13 @@
-package com.veview.veview_sdk
+package com.veview.veview_sdk.presentation
 
 import android.content.Context
 import androidx.annotation.MainThread
-import com.veview.veview_sdk.VeViewSDK.Companion.init
-import com.veview.veview_sdk.audiocapture.AndroidAudioCaptureProvider
-import com.veview.veview_sdk.configs.ConfigProvider
-import com.veview.veview_sdk.configs.VoiceReviewConfig
-import com.veview.veview_sdk.coroutine.DispatcherProvider
-import com.veview.veview_sdk.reviewer.VoiceReviewer
+import com.veview.veview_sdk.data.audiocapture.AndroidAudioCaptureProvider
+import com.veview.veview_sdk.data.configs.LocalConfigProviderImpl
+import com.veview.veview_sdk.data.configs.VoiceReviewConfig
+import com.veview.veview_sdk.data.coroutine.DefaultDispatcherProvider
+import com.veview.veview_sdk.domain.contracts.ConfigProvider
+import com.veview.veview_sdk.domain.reviewer.VoiceReviewer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
@@ -15,7 +15,7 @@ import timber.log.Timber
 
 /**
  * The main entry point for the VeView SDK.
- * This class is responsible for configuring and creating instances of [com.veview.veview_sdk.reviewer.VoiceReviewer].
+ * This class is responsible for configuring and creating instances of [com.veview.veview_sdk.domain.reviewer.VoiceReviewer].
  *
  * Use the [Builder] to construct a configured instance.
  *
@@ -29,7 +29,7 @@ class VeViewSDK private constructor(
 ) {
 
     /**
-     * Creates a new [com.veview.veview_sdk.reviewer.VoiceReviewer] instance.
+     * Creates a new [com.veview.veview_sdk.domain.reviewer.VoiceReviewer] instance.
      *
      * @param context The Android Context.
      * @return A new instance of VoiceReviewer.
@@ -40,14 +40,10 @@ class VeViewSDK private constructor(
     ): VoiceReviewer {
         initTooling()
 
-        Timber.i("Creating VoiceReviewer")
-        val dispatcherProvider = DispatcherProvider.LIVE
+        Timber.tag(LOG_TAG).i("Creating VoiceReviewer")
+        val dispatcherProvider = DefaultDispatcherProvider
         val reviewerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
-        val appConfigProvider = if (isDebug) {
-            ConfigProvider.localProvider(context)
-        } else {
-            ConfigProvider.defaultProvider(context, config)
-        }
+        val appConfigProvider = LocalConfigProviderImpl(context, config)
         return VoiceReviewer.create(
             context = context,
             apiKey = this.apiKey,
@@ -105,6 +101,7 @@ class VeViewSDK private constructor(
     }
 
     companion object {
+        private const val LOG_TAG = "VeViewSDK"
         private var instance: VeViewSDK? = null
 
         /**

@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.configs
+package com.veview.veview_sdk.data.configs
 
 import android.content.Context
 import android.media.AudioFormat
@@ -7,8 +7,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.veview.veview_sdk.domain.contracts.ConfigProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -17,18 +19,20 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "vo
 
 /**
  * DataStore to emit flows of config data for easy testing without needing to rebundle the app.
- * Will implement data store later
+ * If voiceReviewConfig is set by the client, it will always return the config set by the client.
+ * For developer testing, [voiceReviewConfig] should not be set, to allow live config changes.
  */
-internal class LocalConfigProviderImpl constructor(
-    val context: Context
+internal class LocalConfigProviderImpl(
+    val context: Context,
+    val voiceReviewConfig: VoiceReviewConfig? = null
 ) : ConfigProvider {
 
     private val recordDurationPreferences = longPreferencesKey(VR_RECORD_DURATION_KEY)
     private val audioFormatPreferences = intPreferencesKey(VR_AUDIO_FORMAT_KEY)
     private val storageFilePreferences = intPreferencesKey(VR_STORAGE_DIR_KEY)
 
-    override val configFlow: Flow<VoiceReviewConfig>
-        get() = combine(
+    override val voiceReviewConfigFlow: Flow<VoiceReviewConfig>
+        get() = voiceReviewConfig?.let { flowOf(it) } ?: combine(
             recordDurationMillisFlow(),
             audioFormat(),
             storageDir()
@@ -40,15 +44,25 @@ internal class LocalConfigProviderImpl constructor(
                 .build()
         }
 
-    fun recordDurationMillisFlow(): Flow<Long> = context.dataStore.data.map { preferences ->
+    // TODO complete this for all voice review configs
+    override suspend fun setConfig(voiceReviewConfig: VoiceReviewConfig) {
+        context.dataStore.updateData { preferences ->
+            preferences.toMutablePreferences().also { preference ->
+                preference[recordDurationPreferences] =
+                    voiceReviewConfig.recordDuration.inWholeMilliseconds
+            }
+        }
+    }
+
+    private fun recordDurationMillisFlow(): Flow<Long> = context.dataStore.data.map { preferences ->
         preferences[recordDurationPreferences] ?: VR_RECORD_DURATION_DEFAULT
     }
 
-    fun audioFormat(): Flow<Int> = context.dataStore.data.map { preferences ->
+    private fun audioFormat(): Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[audioFormatPreferences] ?: VR_AUDIO_FORMAT_KEY_DEFAULT
     }
 
-    fun storageDir(): Flow<Int> = context.dataStore.data.map { preferences ->
+    private fun storageDir(): Flow<Int> = context.dataStore.data.map { preferences ->
         preferences[storageFilePreferences] ?: VR_STORAGE_DIR_DEFAULT
     }
 

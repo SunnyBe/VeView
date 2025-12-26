@@ -1,14 +1,15 @@
-package com.veview.veview_sdk.reviewer
+package com.veview.veview_sdk.domain.reviewer
 
+import android.Manifest
 import android.accounts.AuthenticatorException
 import androidx.annotation.RequiresPermission
-import com.veview.veview_sdk.VoiceReviewState
-import com.veview.veview_sdk.analysis.AnalysisEngine
-import com.veview.veview_sdk.audiocapture.AudioCaptureProvider
-import com.veview.veview_sdk.configs.ConfigProvider
-import com.veview.veview_sdk.coroutine.DispatcherProvider
-import com.veview.veview_sdk.model.ReviewContext
-import com.veview.veview_sdk.model.VoiceReviewError
+import com.veview.veview_sdk.presentation.voice_review.VoiceReviewState
+import com.veview.veview_sdk.domain.contracts.AnalysisEngine
+import com.veview.veview_sdk.domain.contracts.AudioCaptureProvider
+import com.veview.veview_sdk.domain.contracts.ConfigProvider
+import com.veview.veview_sdk.domain.contracts.DispatcherProvider
+import com.veview.veview_sdk.domain.model.ReviewContext
+import com.veview.veview_sdk.domain.model.VoiceReviewError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -38,25 +39,25 @@ internal class VoiceReviewerImpl internal constructor(
     override val state: StateFlow<VoiceReviewState>
         get() = _state.asStateFlow()
 
-    @RequiresPermission(android.Manifest.permission.RECORD_AUDIO)
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun start(reviewContext: ReviewContext) {
         if (sessionJob?.isActive == true) {
             // Active session is running. TODO Record Non-fatal
-            Timber.tag(LOG_TAG).w("Start called while a review session is already in progress.")
+            Timber.Forest.tag(LOG_TAG).w("Start called while a review session is already in progress.")
             return
         }
-        Timber.tag(LOG_TAG).d("Listening started")
+        Timber.Forest.tag(LOG_TAG).d("Listening started")
 
         sessionJob = coroutineScope.launch {
             try {
-                val config = configProvider.configFlow.first()
+                val config = configProvider.voiceReviewConfigFlow.first()
                 _state.value = VoiceReviewState.Initializing(reviewContext)
 
                 authChecks(apiKey = apiKey)
 
                 launch {
                     audioCaptureProvider.audioStream.collect { audioData ->
-                        Timber.tag(LOG_TAG).d("Audio Byte ${audioData.joinToString(",")}")
+                        Timber.Forest.tag(LOG_TAG).d("Audio Byte ${audioData.joinToString(",")}")
                         val amplitude = calculateAmplitude(audioData)
                         val currentState = _state.value
                         if (currentState is VoiceReviewState.Recording) {

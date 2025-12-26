@@ -1,6 +1,7 @@
-package com.veview.veview_sdk.analysis
+package com.veview.veview_sdk.data.analysis
 
-import com.veview.veview_sdk.model.VoiceReview
+import com.veview.veview_sdk.domain.contracts.AnalysisEngine
+import com.veview.veview_sdk.domain.model.VoiceReview
 import kotlinx.coroutines.delay
 import okhttp3.OkHttpClient
 import java.io.File
@@ -8,7 +9,8 @@ import java.io.File
 /**
  * Implementation using OpenAI's Whisper + GPT.
  */
-internal class OpenAIAnalysisEngine(private val apiKey: String, private val okHttpClient: OkHttpClient) : AnalysisEngine {
+internal class OpenAIAnalysisEngine(private val apiKey: String, private val okHttpClient: OkHttpClient) :
+    AnalysisEngine {
     override suspend fun analyze(audioFile: File): VoiceReview {
         // 1. Call Whisper API for transcription
         // 2. Call GPT API for structured summary

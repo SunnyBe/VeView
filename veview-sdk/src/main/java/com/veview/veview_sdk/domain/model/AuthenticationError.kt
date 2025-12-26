@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.model.error
+package com.veview.veview_sdk.domain.model
 
 // WIP
 sealed class AuthenticationError(override val message: String?) : RuntimeException(message) {

@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.model
+package com.veview.veview_sdk.domain.model
 
 import java.io.File
 

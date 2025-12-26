@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.model
+package com.veview.veview_sdk.domain.model
 
 /**
  * Defines specific, typed errors that can occur during the voice review process.

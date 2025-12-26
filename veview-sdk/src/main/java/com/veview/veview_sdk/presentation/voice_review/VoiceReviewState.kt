@@ -1,8 +1,8 @@
-package com.veview.veview_sdk
+package com.veview.veview_sdk.presentation.voice_review
 
-import com.veview.veview_sdk.model.ReviewContext
-import com.veview.veview_sdk.model.VoiceReview
-import com.veview.veview_sdk.model.VoiceReviewError
+import com.veview.veview_sdk.domain.model.ReviewContext
+import com.veview.veview_sdk.domain.model.VoiceReview
+import com.veview.veview_sdk.domain.model.VoiceReviewError
 import java.io.File
 
 /**

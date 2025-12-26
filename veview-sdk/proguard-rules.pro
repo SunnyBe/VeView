@@ -1,6 +1,6 @@
 # Keep all public classes and members of the SDK's public API
--keep public class com.veview.veview_sdk.VeViewSDK { *; }
--keep public class com.veview.veview_sdk.reviewer.VoiceReviewer { *; }
+-keep public class com.veview.veview_sdk.presentation.VeViewSDK { *; }
+-keep public class com.veview.veview_sdk.domain.reviewer.VoiceReviewer { *; }
 -keep public class com.veview.veview_sdk.configs.** { *; }
 -keep public class com.veview.veview_sdk.model.** { *; }
 

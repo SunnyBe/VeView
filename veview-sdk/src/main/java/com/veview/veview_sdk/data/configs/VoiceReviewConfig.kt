@@ -1,4 +1,4 @@
-package com.veview.veview_sdk.configs
+package com.veview.veview_sdk.data.configs
 
 import android.media.AudioFormat
 import android.media.MediaRecorder
