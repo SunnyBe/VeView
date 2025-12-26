@@ -1,0 +1,45 @@
+gitignore
+# IDE files and local configuration
+# =================================
+.idea/
+.gradle/
+local.properties
+*.iml
+
+# Build artifacts
+# =================================
+build/
+*.apk
+*.aab
+*.jar
+*.aar
+
+# Google Services
+# =================================
+# Typically, google-services.json should be version-controlled if it's generic.
+# If it contains sensitive project identifiers that you want to keep private,
+# or if each developer uses their own Firebase project for testing, then uncomment it.
+# google-services.json
+
+# Test results and reports
+# =================================
+/build/reports/
+/build/test-results/
+/build/outputs/
+
+# Mac, Windows, and Linux specific
+# =================================
+*.DS_Store
+Thumbs.db
+*~
+# End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,gradle,kotlin
+
+# Dependencies
+# =================================
+# These files can be generated from gradle and don't need to be in source control
+/dependencies.lock
+/dependency-updates-report.json
+
+
+# Personal notes
+/notes
