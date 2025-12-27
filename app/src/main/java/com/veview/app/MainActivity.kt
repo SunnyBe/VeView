@@ -22,10 +22,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veview.app.ui.theme.VeViewTheme
-import com.veview.veview_sdk.presentation.VeViewSDK
-import com.veview.veview_sdk.presentation.voice_review.VoiceReviewState
-import com.veview.veview_sdk.data.configs.VoiceReviewConfig
-import com.veview.veview_sdk.domain.model.ReviewContext
+import com.veview.veviewsdk.data.configs.VoiceReviewConfig
+import com.veview.veviewsdk.domain.model.ReviewContext
+import com.veview.veviewsdk.presentation.VeViewSDK
+import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import kotlin.time.Duration.Companion.minutes
 
 class MainActivity : ComponentActivity() {
@@ -39,7 +39,6 @@ class MainActivity : ComponentActivity() {
             .build()
         val voiceReviewer = VeViewSDK.getInstance()
             .newAudioReviewer(context = this, config = config)
-
 
         enableEdgeToEdge()
         setContent {
@@ -78,7 +77,8 @@ class MainActivity : ComponentActivity() {
                                         )
                                     )
                                 }
-                            }) {
+                            }
+                        ) {
                             Text(if (shouldStop) "Stop" else "Start")
                         }
                     }
@@ -96,9 +96,10 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
     )
 }
 
+@Suppress("UnusedPrivateMember")
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+private fun GreetingPreview() {
     VeViewTheme {
         Greeting("Android")
     }

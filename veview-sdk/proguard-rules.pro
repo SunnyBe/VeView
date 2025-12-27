@@ -1,8 +1,8 @@
 # Keep all public classes and members of the SDK's public API
--keep public class com.veview.veview_sdk.presentation.VeViewSDK { *; }
--keep public class com.veview.veview_sdk.domain.reviewer.VoiceReviewer { *; }
--keep public class com.veview.veview_sdk.configs.** { *; }
--keep public class com.veview.veview_sdk.model.** { *; }
+-keep public class com.veview.veviewsdk.presentation.VeViewSDK { *; }
+-keep public class com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }
+-keep public class com.veview.veviewsdk.configs.** { *; }
+-keep public class com.veview.veviewsdk.model.** { *; }
 
 # If your analysis engine uses a library like Gson/Moshi for parsing JSON,
 # you must keep the data model classes that are used for serialization.
