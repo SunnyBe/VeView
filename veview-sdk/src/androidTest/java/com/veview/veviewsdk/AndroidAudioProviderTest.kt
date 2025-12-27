@@ -10,8 +10,8 @@ import androidx.test.rule.GrantPermissionRule
 import androidx.test.rule.ServiceTestRule
 import com.google.common.truth.Truth.assertThat
 import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
-import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
+import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.utils.EmptyTestService
 import kotlinx.coroutines.CoroutineDispatcher
