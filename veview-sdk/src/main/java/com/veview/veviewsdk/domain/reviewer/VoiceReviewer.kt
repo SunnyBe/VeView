@@ -1,6 +1,7 @@
 package com.veview.veviewsdk.domain.reviewer
 
-import android.content.Context
+import com.aallam.openai.client.OpenAI
+import com.squareup.moshi.Moshi
 import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.ConfigProvider
@@ -9,7 +10,6 @@ import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import okhttp3.OkHttpClient
 
 /**
  * Provide Voice reviewer with state of voice review
@@ -20,20 +20,19 @@ interface VoiceReviewer {
     fun stop()
     fun cancel()
 
+    // DNF: This should be a factory if at all, impl details is been exposed here!
     companion object {
         @Suppress("LongParameterList")
         internal fun create(
-            context: Context,
-            apiKey: String,
-            okHttpClient: OkHttpClient,
             configProvider: ConfigProvider,
             dispatcherProvider: DispatcherProvider,
             coroutineScope: CoroutineScope,
-            audioProviderFactory: AudioCaptureProvider.Factory
+            audioProviderFactory: AudioCaptureProvider.Factory,
+            openAI: OpenAI,
+            moshi: Moshi
         ): VoiceReviewer {
             return VoiceReviewerImpl(
-                apiKey = apiKey,
-                analysisEngine = OpenAIAnalysisEngine(apiKey, okHttpClient),
+                analysisEngine = OpenAIAnalysisEngine(openAI, moshi),
                 configProvider = configProvider,
                 coroutineScope = coroutineScope,
                 coroutineDispatcher = dispatcherProvider,

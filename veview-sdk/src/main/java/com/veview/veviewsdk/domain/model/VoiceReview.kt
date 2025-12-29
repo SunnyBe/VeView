@@ -19,5 +19,5 @@ data class VoiceReview(
     val estimatedRating: Int,
     val pros: List<String>,
     val cons: List<String>,
-    val audioFile: File
+    val audioFile: File?
 )

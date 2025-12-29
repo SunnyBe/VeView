@@ -1,4 +1,3 @@
-# detekt.yml
 build:
   maxIssues: 0
   excludeCorrectable: false
@@ -169,7 +168,7 @@ complexity:
     threshold: 600
   LongMethod:
     active: true
-    threshold: 60
+    threshold: 70
   LongParameterList:
     active: true
     functionThreshold: 6

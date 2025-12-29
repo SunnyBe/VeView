@@ -1,14 +1,19 @@
 package com.veview.veviewsdk.domain.contracts
 
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
+import com.veview.veviewsdk.domain.model.AudioRecordState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import java.io.File
+import kotlin.time.Duration
 
 interface AudioCaptureProvider {
-    val audioStream: Flow<ByteArray>
 
-    suspend fun startRecording(fileName: String, config: VoiceReviewConfig): File
+    fun startRecording(
+        fileName: String,
+        config: VoiceReviewConfig,
+        duration: Duration
+    ): Flow<AudioRecordState>
+
     fun stopRecording()
     fun cancel()
 

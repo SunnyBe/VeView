@@ -2,6 +2,14 @@ package com.veview.veviewsdk.presentation
 
 import android.content.Context
 import androidx.annotation.MainThread
+import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.logging.LogLevel
+import com.aallam.openai.client.LoggingConfig
+import com.aallam.openai.client.OpenAI
+import com.aallam.openai.client.OpenAIConfig
+import com.aallam.openai.client.RetryStrategy
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.data.configs.LocalConfigProviderImpl
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
@@ -12,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * The main entry point for the VeView SDK.
@@ -27,6 +36,23 @@ class VeViewSDK private constructor(
     private val okHttpClient: OkHttpClient,
     private val isDebug: Boolean = false
 ) {
+
+    val openAI by lazy {
+        // DNF: Configure client provided OkHttpClient
+        val openAiConfig = OpenAIConfig(
+            token = this.apiKey,
+            timeout = Timeout(socket = 60.seconds),
+            logging = LoggingConfig(if (isDebug) LogLevel.All else LogLevel.None), // DNF: Pass from SDK config
+            retry = RetryStrategy(maxRetries = 1, maxDelay = 60.seconds)
+        )
+        OpenAI(config = openAiConfig)
+    }
+
+    private val moshi by lazy {
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
 
     /**
      * Creates a new [com.veview.veviewsdk.domain.reviewer.VoiceReviewer] instance.
@@ -44,14 +70,14 @@ class VeViewSDK private constructor(
         val dispatcherProvider = DefaultDispatcherProvider
         val reviewerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
         val appConfigProvider = LocalConfigProviderImpl(context, config)
+
         return VoiceReviewer.create(
-            context = context,
-            apiKey = this.apiKey,
-            okHttpClient = this.okHttpClient,
             configProvider = appConfigProvider,
             dispatcherProvider = dispatcherProvider,
             coroutineScope = reviewerScope,
-            audioProviderFactory = AndroidAudioCaptureProvider.apply { initialize(context) }
+            audioProviderFactory = AndroidAudioCaptureProvider.apply { initialize(context) },
+            openAI = openAI,
+            moshi = moshi
         )
     }
 

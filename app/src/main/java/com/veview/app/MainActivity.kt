@@ -33,9 +33,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        VeViewSDK.init("API", isDebug = true)
+        VeViewSDK.init(BuildConfig.VEVIEW_API_KEY, isDebug = BuildConfig.DEBUG)
         val config = VoiceReviewConfig.Builder()
-            .setRecordDuration(5.minutes)
+            .setRecordDuration(1.minutes)
             .build()
         val voiceReviewer = VeViewSDK.getInstance()
             .newAudioReviewer(context = this, config = config)
@@ -54,7 +54,9 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val shouldStop =
-                            reviewState !is VoiceReviewState.Idle && reviewState !is VoiceReviewState.Success
+                            reviewState !is VoiceReviewState.Idle &&
+                                reviewState !is VoiceReviewState.Success &&
+                                reviewState !is VoiceReviewState.Error
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -68,7 +70,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(32.dp),
                             onClick = {
                                 if (shouldStop) {
-                                    voiceReviewer.stop()
+                                    voiceReviewer.cancel()
                                 } else {
                                     voiceReviewer.start(
                                         ReviewContext(

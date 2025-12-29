@@ -1,28 +1,26 @@
 package com.veview.veviewsdk.data.audiocapture
 
-import android.Manifest
 import android.content.Context
 import android.media.AudioRecord
-import androidx.annotation.RequiresPermission
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.DispatcherProvider
-import kotlinx.coroutines.CompletableDeferred
+import com.veview.veviewsdk.domain.model.AudioRecordState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Clock.System
+import kotlin.time.Duration
 
 /**
  * An Android-specific, stateless service for capturing raw audio from the microphone
@@ -42,116 +40,88 @@ internal class AndroidAudioCaptureProvider(
     private val scope: CoroutineScope,
     private val dispatcherProvider: DispatcherProvider
 ) : AudioCaptureProvider {
-    private val _audioStream = MutableSharedFlow<ByteArray>()
-    override val audioStream: Flow<ByteArray> = _audioStream.asSharedFlow()
-
     private var audioRecord: AudioRecord? = null
+
     private var isRecording = AtomicBoolean(false)
     private var recordingFile: File? = null // Keep track of the file
 
-    private var recordingJob: Job? = null
-
-    @Suppress("LongMethod")
-    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
-    // 2. THE FIX: The function now only returns the File, as the Job is managed internally.
-    override suspend fun startRecording(
+    override fun startRecording(
         fileName: String,
-        config: VoiceReviewConfig
-    ): File {
+        config: VoiceReviewConfig,
+        duration: Duration
+    ): Flow<AudioRecordState> = flow {
         Timber.tag(LOG_TAG).d("Current Config: $config")
         check(isRecording.compareAndSet(false, true)) { "There is an ongoing recording." }
 
-        val recordingStartedSignal = CompletableDeferred<Unit>()
+        emit(AudioRecordState.Starting) // Emit starting state
 
-        val outputFile = withContext(dispatcherProvider.io) {
-            val file = File(config.storageDirectory ?: context.cacheDir, fileName)
-            recordingFile = file
-            WavFileUtil.writeWavHeader(
-                file,
-                config.sampleRate,
-                config.numChannels,
-                config.bitsPerSample
-            )
-            file
-        }
+        val outputFile = generateOutputFile(config, fileName)
 
-        // Assign the launched job to our internal property.
-        recordingJob = scope.launch(dispatcherProvider.io) {
-            var fileOutputStream: FileOutputStream? = null
-            try {
-                val minBufferSize = AudioRecord.getMinBufferSize(
-                    config.sampleRate,
-                    config.channelConfig,
-                    config.audioFormat
-                )
-                val bufferSize = minBufferSize * 2
-                check(bufferSize > 0) { "Invalid buffer size calculated: $bufferSize" }
+        var fileOutputStream: FileOutputStream? = null
 
-                audioRecord = AudioRecord(
-                    config.audioSource,
-                    config.sampleRate,
-                    config.channelConfig,
-                    config.audioFormat,
-                    bufferSize
-                )
-                    .also {
-                        check(it.state == AudioRecord.STATE_INITIALIZED) {
-                            "AudioRecord init failed. Permissions or hardware issues."
-                        }
-                    }
+        val minBufferSize = AudioRecord.getMinBufferSize(
+            config.sampleRate,
+            config.channelConfig,
+            config.audioFormat
+        )
+        val bufferSize = minBufferSize * 2
+        check(bufferSize > 0) { "Invalid buffer size calculated: $bufferSize" }
 
-                fileOutputStream = FileOutputStream(outputFile, true)
-                val audioBuffer = ByteArray(bufferSize)
+        audioRecord = createAudioRecordInstance(config, bufferSize)
 
-                audioRecord?.startRecording()
-                Timber.tag(LOG_TAG)
-                    .d("Audio recording started, writing to: ${outputFile.absolutePath}")
-                recordingStartedSignal.complete(Unit)
+        fileOutputStream = FileOutputStream(outputFile, true)
+        val audioBuffer = ByteArray(bufferSize)
 
-                while (scope.isActive && isRecording.get()) {
-                    val readSize = audioRecord?.read(audioBuffer, 0, audioBuffer.size) ?: -1
-                    if (readSize > 0) {
-                        val validData = audioBuffer.copyOf(readSize)
-                        _audioStream.emit(validData)
-                        fileOutputStream.write(validData)
-                    }
-                }
-            } catch (e: CancellationException) {
-                // This is the correct way to handle cancellation. Let it propagate.
-                Timber.tag(LOG_TAG).d("Recording job was cancelled.")
-                throw e
-            } catch (e: IOException) {
-                // 2. THE FIX: Catch specific, expected exceptions.
-                Timber.e(e, "An IO error occurred during audio recording.")
-                isRecording.set(false)
-                if (!recordingStartedSignal.isCompleted) {
-                    recordingStartedSignal.completeExceptionally(e)
-                }
-                throw e // Propagate the error to the caller
-            } catch (e: IllegalStateException) {
-                // Catch errors from our `check` calls.
-                Timber.e(e, "An IllegalStateException occurred during audio setup.")
-                isRecording.set(false)
-                if (!recordingStartedSignal.isCompleted) {
-                    recordingStartedSignal.completeExceptionally(e)
-                }
-                throw e // Propagate the error to the caller
-            } finally {
-                Timber.d("Audio recording loop finished.")
-                audioRecord?.stop()
-                audioRecord?.release()
-                audioRecord = null
-                fileOutputStream?.close()
-                recordingFile?.let {
-                    WavFileUtil.updateWavHeader(it)
-                    Timber.d("WAV header updated for file: ${it.absolutePath}")
+        audioRecord?.startRecording()
+        val startTime = System.now() // Note start time
+        emit(AudioRecordState.Started(outputFile, startTime))
+        Timber.tag(LOG_TAG).d("Started audio recording at $startTime.")
+
+        try {
+            // Waiting for audio data and emitting chunks
+            while (scope.isActive && isRecording.get() &&
+                (System.now() - startTime) < duration
+            ) {
+                val readSize = audioRecord?.read(audioBuffer, 0, audioBuffer.size) ?: -1
+                if (readSize > 0) {
+                    val validData = audioBuffer.copyOf(readSize)
+                    val emissionTime = System.now()
+                    emit(
+                        AudioRecordState.DataChunkReady(
+                            outputFile,
+                            validData,
+                            emissionTime - startTime
+                        )
+                    )
+                    fileOutputStream.write(validData)
                 }
             }
+        } finally {
+            Timber.d("Audio recording loop completed at ${System.now()}. Cleaning up resources.")
+            isRecording.set(false)
+            audioRecord?.stop()
+            audioRecord?.release()
+            audioRecord = null
+            fileOutputStream.close()
         }
 
-        recordingStartedSignal.await()
-        return outputFile
+        emit(AudioRecordState.Stopped(System.now()))
+
+        recordingFile?.let {
+            WavFileUtil.updateWavHeader(it)
+            Timber.d("WAV header updated for file: ${it.absolutePath}")
+            emit(AudioRecordState.Done(it))
+        }
+    }.catch { cause ->
+        Timber.e(cause, "Error in audio recording flow.")
+        isRecording.set(false)
+        if (cause !is CancellationException) {
+            emit(AudioRecordState.Error(cause.message ?: "Unknown error"))
+        } else {
+            throw cause // Stop subsequent processing on cancellation
+        }
     }
+        .flowOn(dispatcherProvider.default)
 
     /**
      * Signals the recording loop to stop. The loop will then enter its `finally`
@@ -165,8 +135,40 @@ internal class AndroidAudioCaptureProvider(
 
     override fun cancel() {
         Timber.tag(LOG_TAG).d("Cancelling audio capture job.")
-        recordingJob?.cancel()
-        isRecording.set(false)
+        stopRecording()
+    }
+
+    private suspend fun generateOutputFile(config: VoiceReviewConfig, fileName: String): File =
+        withContext(dispatcherProvider.io) {
+            val file = File(config.storageDirectory ?: context.cacheDir, fileName)
+            recordingFile = file
+            Timber.d("Recording file created at: ${file.absolutePath}")
+            WavFileUtil.writeWavHeader(
+                file,
+                config.sampleRate,
+                config.numChannels,
+                config.bitsPerSample
+            )
+            Timber.d("WAV header written to file: ${file.absolutePath}")
+            file
+        }
+
+    private fun createAudioRecordInstance(
+        config: VoiceReviewConfig,
+        bufferSize: Int
+    ): AudioRecord {
+        return AudioRecord(
+            config.audioSource,
+            config.sampleRate,
+            config.channelConfig,
+            config.audioFormat,
+            bufferSize
+        )
+            .also {
+                check(it.state == AudioRecord.STATE_INITIALIZED) {
+                    "AudioRecord init failed. Permissions or hardware issues."
+                }
+            }
     }
 
     companion object : AudioCaptureProvider.Factory {

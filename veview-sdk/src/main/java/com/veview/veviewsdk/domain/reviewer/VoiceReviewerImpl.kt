@@ -1,12 +1,13 @@
 package com.veview.veviewsdk.domain.reviewer
 
 import android.Manifest
-import android.accounts.AuthenticatorException
 import androidx.annotation.RequiresPermission
+import com.veview.veviewsdk.data.analysis.AnalysisFailedException
 import com.veview.veviewsdk.domain.contracts.AnalysisEngine
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.ConfigProvider
 import com.veview.veviewsdk.domain.contracts.DispatcherProvider
+import com.veview.veviewsdk.domain.model.AudioRecordState
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.VoiceReviewError
 import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
@@ -14,7 +15,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.sqrt
 
 internal class VoiceReviewerImpl internal constructor(
-    private val apiKey: String,
     private val configProvider: ConfigProvider,
     private val analysisEngine: AnalysisEngine,
     private val audioProviderFactory: AudioCaptureProvider.Factory,
@@ -46,64 +45,110 @@ internal class VoiceReviewerImpl internal constructor(
     @Suppress("TooGenericExceptionCaught")
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun start(reviewContext: ReviewContext) {
+        println("Start Hit: Is session active: ${sessionJob?.isActive}")
         if (sessionJob?.isActive == true) {
             // Active session is running. TODO Record Non-fatal
-            Timber.tag(LOG_TAG).w("Start called while a review session is already in progress.")
+            Timber.tag(LOG_TAG).w("An active session is in progress.")
+            _state.value = VoiceReviewState.Error(
+                errorType = VoiceReviewError.RECORDING_FAILED,
+                message = "There is an active recording session.",
+                throwable = IllegalStateException("There is an active recording session.")
+            )
             return
         }
+
+        println("I am here because there is no active session.")
+
         Timber.tag(LOG_TAG).d("Listening started")
+        _state.value = VoiceReviewState.Initializing(reviewContext)
 
         sessionJob = coroutineScope.launch {
             try {
-                val audioCaptureProvider = audioProviderFactory.create(this) // use session job
+                val audioCaptureProvider = audioProviderFactory.create(this)
                 sessionAudioProvider.set(audioCaptureProvider)
 
                 val config = configProvider.voiceReviewConfigFlow.first()
-                _state.value = VoiceReviewState.Initializing(reviewContext)
 
-                authChecks(apiKey = apiKey)
-
-                launch {
-                    audioCaptureProvider.audioStream.collect { audioData ->
-                        Timber.tag(LOG_TAG).d("Audio Byte ${audioData.joinToString(",")}")
-                        val amplitude = calculateAmplitude(audioData)
-                        val currentState = _state.value
-                        if (currentState is VoiceReviewState.Recording) {
-                            _state.value = currentState.copy(amplitude = amplitude)
-                        }
-                    }
-                }
-
-                val audioFile = audioCaptureProvider.startRecording(
+                audioCaptureProvider.startRecording(
                     generateTimestampFileName(),
-                    config
+                    config,
+                    config.recordDuration
                 )
-                _state.value = VoiceReviewState.Recording(audioFile, 0L, 0)
-
-                delay(config.recordDuration) // Duration of recording
-
-                sessionAudioProvider.get()?.stopRecording()
-                _state.value = VoiceReviewState.Processing(audioFile)
-
-                val result = analysisEngine.analyze(audioFile)
-                _state.value = VoiceReviewState.Success(result)
-            } catch (cause: AuthenticatorException) {
-                _state.value = VoiceReviewState.Error(
-                    errorType = VoiceReviewError.INVALID_API_KEY,
-                    message = "Failed: ${cause.message}",
-                    throwable = cause
-                )
+                    .collect { audioRecordingState ->
+                        handleAudioRecordingState(audioRecordingState)
+                    }
+                // proceeds to finally only when collection is done or cancelled.
             } catch (cause: CancellationException) {
-                Timber.tag(LOG_TAG).d("Session cancelled as expected. Stop pending jobs")
+                Timber.tag(LOG_TAG).d("Session was cancelled")
                 throw cause
             } catch (cause: Exception) {
+                val errorType = when (cause) {
+                    is AnalysisFailedException -> VoiceReviewError.PROCESSING_FAILED
+                    else -> VoiceReviewError.UNKNOWN
+                }
                 _state.value = VoiceReviewState.Error(
-                    errorType = VoiceReviewError.UNKNOWN,
+                    errorType = errorType,
                     message = "An Unexpected error occurred: ${cause.message}",
                     throwable = cause
                 )
-            } finally {
                 sessionAudioProvider.set(null)
+            } finally {
+                // This block now correctly runs after the session is over (completed or cancelled).
+                Timber.tag(LOG_TAG).d("Session job finished. Cleaning up provider reference.")
+                sessionAudioProvider.set(null)
+            }
+        }
+    }
+
+    private suspend fun handleAudioRecordingState(state: AudioRecordState) {
+        when (state) {
+            is AudioRecordState.DataChunkReady -> {
+                val audioData = state.chunk
+                Timber.tag(LOG_TAG).d("Audio Byte ${audioData.joinToString(",")}")
+                val currentState = _state.value
+                if (currentState is VoiceReviewState.Recording) {
+                    _state.value = currentState.copy(amplitude = calculateAmplitude(audioData))
+                } else {
+                    _state.value = VoiceReviewState.Recording(
+                        file = state.audioFile,
+                        durationMillis = 0,
+                        amplitude = 0
+                    )
+                }
+            }
+
+            is AudioRecordState.Done -> {
+                _state.value = VoiceReviewState.Processing(state.audioFile)
+                val audioFile = state.audioFile
+                val result = withContext(coroutineDispatcher.io) {
+                    analysisEngine.analyze(audioFile)
+                }
+                _state.value = VoiceReviewState.Success(result)
+            }
+
+            is AudioRecordState.Error -> {
+                _state.value = VoiceReviewState.Error(
+                    errorType = VoiceReviewError.RECORDING_FAILED,
+                    message = "Recording error: ${state.message}",
+                    throwable = IllegalStateException(state.message)
+                )
+            }
+
+            AudioRecordState.Idle -> {
+                Timber.tag(LOG_TAG).i("Recording Session is idle.")
+            }
+
+            is AudioRecordState.Starting -> {
+                Timber.tag(LOG_TAG).i("Recording Session started.")
+            }
+
+            is AudioRecordState.Stopped -> {
+                Timber.tag(LOG_TAG).i("Recording Session stopped.")
+            }
+
+            is AudioRecordState.Started -> {
+                Timber.tag(LOG_TAG)
+                    .i("Recording Session started at ${state.start}.")
             }
         }
     }
@@ -114,15 +159,13 @@ internal class VoiceReviewerImpl internal constructor(
     }
 
     override fun cancel() {
+        sessionAudioProvider.set(null)
+        println("Do I have an active session to cancel? ${sessionJob?.isActive}")
         if (sessionJob?.isActive == true) {
             Timber.tag(LOG_TAG).d("Canceling voice review session.")
             sessionJob?.cancel("Voice review cancelled by user.")
         }
         _state.value = VoiceReviewState.Cancelled
-    }
-
-    private suspend fun authChecks(apiKey: String?) = withContext(coroutineDispatcher.io) {
-        if (apiKey.isNullOrBlank()) throw AuthenticatorException("API key is null or blank")
     }
 
     @Suppress("MagicNumber")

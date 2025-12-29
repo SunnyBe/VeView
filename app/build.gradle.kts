@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,6 +21,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // from gradle.properties file
+        buildConfigField("String", "VEVIEW_API_KEY", "\"${project.property("OPENAI_API_KEY")}\"")
     }
 
     buildTypes {
@@ -31,14 +37,21 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "11"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+            languageVersion = KotlinVersion.KOTLIN_2_2
+            apiVersion = KotlinVersion.KOTLIN_2_2
+        }
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

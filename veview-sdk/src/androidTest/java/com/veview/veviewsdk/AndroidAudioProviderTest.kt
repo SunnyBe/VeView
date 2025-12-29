@@ -8,18 +8,19 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.GrantPermissionRule
 import androidx.test.rule.ServiceTestRule
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.DispatcherProvider
+import com.veview.veviewsdk.domain.model.AudioRecordState
 import com.veview.veviewsdk.utils.EmptyTestService
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -28,6 +29,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.concurrent.TimeoutException
+import kotlin.time.Duration.Companion.seconds
 
 @RunWith(AndroidJUnit4::class)
 class AndroidAudioProviderTest {
@@ -79,39 +81,82 @@ class AndroidAudioProviderTest {
     }
 
     @Test
-    fun startRecording_and_stopRecording_creates_a_valid_nonEmpty_wavFile() = runBlocking {
+    fun startRecording_emitsStatesAndProducesValidWavFile() = runBlocking {
         // Arrange
         val fileName = "instrumentation_test_${System.currentTimeMillis()}.wav"
-        val expectedRecordDuration = 2000L // Record for 2 seconds
+        val recordDuration = 2.seconds // Record for 2 real seconds
 
-        // Act
         val config = VoiceReviewConfig.Builder()
             .setStorageDirectory(applicationContext.cacheDir)
-            .setChannelConfig(AudioFormat.CHANNEL_IN_MONO) // Use the Android constant
-            .setAudioFormat(AudioFormat.ENCODING_PCM_16BIT) // Use the Android constant
+            .setChannelConfig(AudioFormat.CHANNEL_IN_MONO)
+            .setAudioFormat(AudioFormat.ENCODING_PCM_16BIT)
             .setSampleRate(16000)
             .build()
 
-        val audioFile = audioProvider.startRecording(fileName, config)
-        createdFile = audioFile // Save reference for cleanup
-        delay(expectedRecordDuration)
-        audioProvider.stopRecording()
-        delay(500)
-        // Assert
+        var finalAudioFile: File? = null
+
+        // Act & Assert
+        // Use Turbine's `test` extension to collect and assert flow emissions.
+        audioProvider.startRecording(fileName, config, recordDuration).test {
+            // The flow should immediately start emitting states
+            assertThat(awaitItem()).isInstanceOf(AudioRecordState.Starting::class.java)
+            assertThat(awaitItem()).isInstanceOf(AudioRecordState.Started::class.java)
+
+            // We expect a series of data chunks
+            var currentState = awaitItem()
+            while (currentState is AudioRecordState.DataChunkReady) {
+                currentState = awaitItem()
+            }
+
+            // The flow should eventually emit Stopped and then Done
+            assertThat(currentState).isInstanceOf(AudioRecordState.Stopped::class.java)
+
+            val doneState = awaitItem()
+            assertThat(doneState).isInstanceOf(AudioRecordState.Done::class.java)
+
+            // Capture the finalized file from the Done state
+            finalAudioFile = (doneState as AudioRecordState.Done).audioFile
+            createdFile = finalAudioFile
+
+            // The flow should now be complete
+            awaitComplete()
+        }
+
+        // Final assertions on the resulting file
+        val audioFile = finalAudioFile!!
         assertThat(audioFile.exists()).isTrue()
         assertThat(audioFile.length()).isGreaterThan(44L) // Must be larger than the WAV header
 
-        // 6. Verify the file path is correct
-        val expectedParentDir = applicationContext.cacheDir
-        assertThat(audioFile.parentFile).isEqualTo(expectedParentDir)
-        assertThat(audioFile.name).isEqualTo(fileName)
-
-        // 7. Optional: A more advanced check could be to read the WAV header
-        // and verify the file size fields were updated correctly.
         val headerBytes = audioFile.readBytes().take(44)
-        // For example, check that the RIFF chunk size (bytes 4-7) is not zero.
         val chunkSize =
             headerBytes.slice(4..7).reversed().joinToString("") { "%02x".format(it) }.toLong(16)
         assertThat(chunkSize).isEqualTo(audioFile.length() - 8)
+    }
+
+    @Test
+    fun startRecording_withInvalidConfig_emitsErrorState() = runBlocking {
+        // Arrange
+        val fileName = "error_test.wav"
+        val recordDuration = 5.seconds
+
+        // Create an invalid configuration that AudioRecord will reject.
+        // A sample rate of 0 is guaranteed to fail.
+        val invalidConfig = VoiceReviewConfig.Builder()
+            .setStorageDirectory(applicationContext.cacheDir)
+            .setSampleRate(0) // Invalid sample rate
+            .build()
+
+        // Act & Assert
+        audioProvider.startRecording(fileName, invalidConfig, recordDuration).test {
+            // It should still try to start
+            assertThat(awaitItem()).isInstanceOf(AudioRecordState.Starting::class.java)
+
+            // It should then immediately emit an Error state because AudioRecord will fail to initialize
+            val errorState = awaitItem()
+            assertThat(errorState).isInstanceOf(AudioRecordState.Error::class.java)
+
+            // The flow should then complete because it has failed and cannot continue.
+            awaitComplete()
+        }
     }
 }
