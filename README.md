@@ -1,33 +1,41 @@
 # VeView SDK for Android
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Latest Version](https://img.shields.io/badge/version-v1.0.0-blue.svg)](<fill content manually: link to releases>)
 
-The VeView SDK for Android is a modern, coroutine-based library designed to simplify the process of capturing, processing, and analyzing voice reviews within any Android application.
+The VeView SDK for Android provides a simple and powerful way to integrate voice feedback and review capabilities into your Android application. It handles audio recording, processing, and AI-powered transcription, allowing you to focus on building your app's core features.
 
 ## ✨ Features
 
-*   **State-of-the-Art Architecture**: Built with Kotlin Coroutines, Flow, and a clean, layered architecture.
-*   **Highly Configurable**: Easily configure recording duration, audio quality, and storage options.
-*   **Dynamic Configuration**: Supports dynamic configuration providers (e.g., from a local QA settings screen or remote config) to change SDK behavior on the fly.
-*   **Robust State Management**: Exposes a simple `StateFlow<VoiceReviewState>` to observe the entire lifecycle of a voice review, from `Idle` to `Success` or `Error`.
-*   **Lifecycle Aware**: Designed to integrate seamlessly with Android's modern lifecycle components like `ViewModel` to survive configuration changes without interrupting recordings.
-*   **Testable**: Core business logic is fully unit-testable, and hardware interactions are validated with instrumentation tests.
+*   **Effortless Integration**: Add voice review functionality to your app in minutes.
+*   **AI-Powered Transcription**: Converts spoken reviews into text using state-of-the-art AI.
+*   **Modern Architecture**: Built with Kotlin, Coroutines, and Flow for a reactive, non-blocking, and thread-safe solution.
+*   **Robust State Management**: Observe the entire voice review lifecycle through a `StateFlow`, making UI updates a breeze.
+*   **Lifecycle Aware**: Seamlessly integrates with Android's lifecycle components (`ViewModel`, `Activity`, `Fragment`) to handle configuration changes gracefully.
+*   **Highly Configurable**: Customize recording duration, storage options, and more.
+*   **Dynamic Configuration**: Alter SDK behavior on the fly using local or remote configuration providers.
+*   **Testable**: Designed for testability, with decoupled business logic and hardware interactions.
 
 ## 🚀 Getting Started
 
 ### 1. Add the Dependency
 
-To get started, add the VeView SDK as a dependency in your app's `build.gradle.kts` file:
+Add the following to your `build.gradle.kts` or `build.gradle` file.
+
+`<fill content manually: Add your hosting instructions here, e.g., Maven Central, JitPack, etc.>`
+
+**Example for Maven Central:**
 
 ```kotlin
+// build.gradle.kts
 dependencies {
-    implementation(project(":veview-sdk"))
+    implementation("com.veview:veview-sdk:1.0.0") // Replace with the latest version
 }
 ```
 
 ### 2. Add Permissions
 
-The VeView SDK requires the following permissions to be declared in your app's `AndroidManifest.xml`:
+Declare the required permissions in your app's `AndroidManifest.xml`:
 
 ```xml
 <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -36,66 +44,16 @@ The VeView SDK requires the following permissions to be declared in your app's `
 
 ### 3. Initialize the SDK
 
-Initialize the `VoiceReviewer` in your `Activity` or `Fragment`:
-
-```kotlin
-class MainActivity : ComponentActivity() {
-
-    private lateinit var voiceReviewer: VoiceReviewer
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        voiceReviewer = VoiceReviewer.create(
-            context = this,
-            apiKey = "YOUR_API_KEY", // TODO: Replace with your API key
-            okHttpClient = OkHttpClient(),
-            configProvider = LocalConfigProviderImpl(this)
-        )
-    }
-}
-```
-
-##  Usage
-
-### Start a Voice Review
-
-To start a voice review, call the `start` method with a `ReviewContext`:
-
-```kotlin
-voiceReviewer.start(this, ReviewContext(reviewId = "12345")) // TODO: Replace with a real review ID
-```
-
-### Observe the State
-
-The `VoiceReviewer` exposes a `StateFlow<VoiceReviewState>` that you can collect to observe the state of the voice review process. This is useful for updating your UI based on the current state.
-
-```kotlin
-lifecycleScope.launch {
-    voiceReviewer.state.collect { state ->
-        when (state) {
-            is VoiceReviewState.Idle -> { /* Ready to start */ }
-            is VoiceReviewState.Recording -> { /* Recording in progress */ }
-            is VoiceReviewState.Processing -> { /* Processing the recording */ }
-            is VoiceReviewState.Success -> { /* Voice review completed successfully */ }
-            is VoiceReviewState.Error -> { /* An error occurred */ }
-        }
-    }
-}
-```
-
-### Using a ViewModel
-
-It is highly recommended to use the `VoiceReviewer` inside an Android `ViewModel` to ensure that any ongoing recording or analysis survives screen rotations and other configuration changes.
+Initialize the `VoiceReviewer` in your `Application`, `Activity`, or `Fragment`. It's recommended to do this in a `ViewModel` to persist it across configuration changes.
 
 ```kotlin
 class MyReviewViewModel(application: Application) : AndroidViewModel(application) {
 
     private val voiceReviewer: VoiceReviewer = VoiceReviewer.create(
         context = application,
-        apiKey = "YOUR_API_KEY", // TODO: Replace with your API key
-        okHttpClient = OkHttpClient(),
-        configProvider = LocalConfigProviderImpl(application)
+        apiKey = "<fill content manually: YOUR_VEVIEW_API_KEY>",
+        okHttpClient = OkHttpClient(), // Optional: Provide your own OkHttpClient instance
+        configProvider = LocalConfigProviderImpl(application) // Optional: Provide a custom config provider
     )
 
     val voiceReviewState: StateFlow<VoiceReviewState> = voiceReviewer.state
@@ -106,13 +64,52 @@ class MyReviewViewModel(application: Application) : AndroidViewModel(application
 }
 ```
 
+## 🎤 Usage
+
+### Start a Voice Review
+
+To start a voice review, simply call the `start` method.
+
+```kotlin
+viewModel.startVoiceReview(this, "review-id-12345")
+```
+
+### Observe the State
+
+Collect the `StateFlow<VoiceReviewState>` to react to changes in the voice review process and update your UI accordingly.
+
+```kotlin
+lifecycleScope.launch {
+    viewModel.voiceReviewState.collect { state ->
+        when (state) {
+            is VoiceReviewState.Idle -> { /* SDK is ready to start a new recording */ }
+            is VoiceReviewState.Recording -> {
+                val progress = state.progress // 0.0 to 1.0
+                /* Update UI to show recording is in progress */
+            }
+            is VoiceReviewState.Processing -> { /* The recording is being processed and transcribed */ }
+            is VoiceReviewState.Success -> {
+                val transcription = state.transcription
+                /* Voice review completed, you have the text! */
+            }
+            is VoiceReviewState.Error -> {
+                val errorMessage = state.message
+                /* An error occurred, handle it appropriately */
+            }
+        }
+    }
+}
+```
+
 ## ⚙️ Configuration
 
-The `LocalConfigProviderImpl` allows you to configure the SDK's behavior. You can create a `veview_config.json` file in your app's `res/raw` directory to override the default settings:
+You can easily override the default SDK settings by creating a `veview_config.json` file in your app's `res/raw` directory.
+
+**Example `res/raw/veview_config.json`:**
 
 ```json
 {
-  "maxRecordingDurationMillis": 30000,
+  "maxRecordingDurationMillis": 60000,
   "removeFileAfterAnalysis": true
 }
 ```
@@ -130,3 +127,7 @@ This will create a `gradle.lockfile` in each module's directory. These files sho
 ## 📦 Third-Party Dependencies
 
 For a full list of third-party libraries used in this SDK, please see the [DEPENDENCIES.md](veview-sdk/DEPENDENCIES.md) file.
+
+## 📄 License
+
+This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
