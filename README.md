@@ -129,4 +129,4 @@ This will create a `gradle.lockfile` in each module's directory. These files sho
 
 ## 📦 Third-Party Dependencies
 
-For a full list of third-party libraries used in this SDK, please see the [DEPENDENCIES.md](DEPENDENCIES.md) file.
+For a full list of third-party libraries used in this SDK, please see the [DEPENDENCIES.md](veview-sdk/DEPENDENCIES.md) file.
