@@ -13,7 +13,7 @@ android {
     }
     defaultConfig {
         minSdk = 24
-        version = "0.0.3"
+        version = "0.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -72,6 +72,9 @@ publishing {
             afterEvaluate {
                 from(components["release"])
             }
+            groupId = "com.github.SunnyBe.VeView"
+            artifactId = "veviewsdk"
+            version = project.version.toString()
         }
     }
 }
