@@ -3,8 +3,7 @@
 
 # --- Public API Surface ---
 # Keep the main entry point and its public nested classes (e.g., Builder).
--keep public class com.veview.veviewsdk.presentation.VeViewSDK { *; }
--keep public class com.veview.veviewsdk.presentation.VeViewSDK$* { *; }
+-keep public class com.veview.veviewsdk.presentation.** { *; }
 
 # Keep the public interface for the voice reviewer.
 -keep public interface com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }
@@ -23,6 +22,9 @@
 # Keep this class and its members from being obfuscated or removed.
 -keep class com.veview.veviewsdk.data.configs.VoiceReviewConfig { *; }
 -keep class com.veview.veviewsdk.data.configs.VoiceReviewConfig$* { *; }
+
+# Keep the data class Moshi needs for reflection to parse the GPT JSON response.
+-keep class com.veview.veviewsdk.data.analysis.network.GptAnalysisResponse { *; }
 
 # --- Third-Party Library Dependencies ---
 # The openai-kotlin SDK uses Ktor, which can be affected by shrinking.
