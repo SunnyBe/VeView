@@ -8,10 +8,7 @@ plugins {
 
 android {
     namespace = "com.veview.veviewsdk"
-    compileSdk {
-        version = release(36)
-    }
-
+    compileSdk = 34
     defaultConfig {
         minSdk = 24
 
@@ -72,9 +69,15 @@ publishing {
             afterEvaluate {
                 from(components["release"])
             }
-            groupId = "com.veview"
+            groupId = "com.github.SunnyBe"
             artifactId = "veview-sdk"
-            version = "0.0.1"
+            version = "0.0.3"
+        }
+    }
+    repositories {
+        maven {
+            name = "JitPack"
+            url = uri("https://jitpack.io")
         }
     }
 }

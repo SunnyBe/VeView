@@ -1,0 +1,5 @@
+# Configuration for JitPack build server
+jdk:
+  - openjdk17 # Specify JDK 17, which is required by modern Android Gradle Plugins
+install:
+  - ./gradlew build :veview-sdk:publishToMavenLocal # Tell JitPack to build and publish the SDK module
