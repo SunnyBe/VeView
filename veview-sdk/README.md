@@ -15,7 +15,7 @@ For instructions on how to *use* the SDK in an application, please refer to the 
 This project uses Gradle's [dependency locking](https://docs.gradle.org/current/userguide/dependency_locking.html) to ensure repeatable builds. After cloning, or if you need to update dependencies, run the following script to generate the lockfiles:
 
 ```bash
-./generate_dependency_locks.sh
+./generate_dependency_locks.sh generate
 ```
 Commit any changes to the `*.lockfile` files to version control.
 

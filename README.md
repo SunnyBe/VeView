@@ -119,7 +119,7 @@ You can easily override the default SDK settings by creating a `veview_config.js
 To ensure a consistent development environment, we use Gradle's dependency locking. After cloning the repository, run the following script to generate the dependency lock files:
 
 ```bash
-./generate_dependency_locks.sh
+./generate_dependency_locks.sh generate
 ```
 
 This will create a `gradle.lockfile` in each module's directory. These files should be committed to version control.

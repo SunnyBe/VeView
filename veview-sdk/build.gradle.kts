@@ -79,12 +79,6 @@ publishing {
     }
 }
 
-dependencyLocking {
-    lockAllConfigurations()
-    lockFile = file("$rootDir/dependency-locks/veview-sdk.lockfile")
-    lockMode = LockMode.STRICT
-}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -95,7 +89,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation("androidx.annotation:annotation:1.9.1")
 
@@ -118,4 +111,3 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.turbine)
 }
-
