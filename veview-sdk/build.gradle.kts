@@ -73,7 +73,7 @@ publishing {
             }
             groupId = "com.github.SunnyBe"
             artifactId = "veview-sdk"
-            version = "0.0.4"
+            version = "0.0.5"
         }
     }
     repositories {

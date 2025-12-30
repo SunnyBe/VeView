@@ -13,6 +13,7 @@ build/
 *.apk
 *.aab
 *.jar
+!gradle/wrapper/gradle-wrapper.jar
 *.aar
 
 # Google Services
@@ -34,12 +35,6 @@ build/
 Thumbs.db
 *~
 # End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,gradle,kotlin
-
-# Dependencies
-# =================================
-# These files can be generated from gradle and don't need to be in source control
-/dependencies.lock
-/dependency-updates-report.json
 
 
 # Personal notes
