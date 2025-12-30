@@ -57,6 +57,8 @@ android {
 
 dependencyLocking {
     lockAllConfigurations()
+    lockFile = file("$rootDir/dependency-locks/app.lockfile")
+    lockMode = LockMode.STRICT
 }
 
 dependencies {

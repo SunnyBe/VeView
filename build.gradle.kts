@@ -37,3 +37,9 @@ subprojects {
         }
     }
 }
+
+dependencyLocking {
+    lockAllConfigurations()
+    lockFile = file("$projectDir/dependency-locks/app.lockfile")
+    lockMode = LockMode.STRICT
+}

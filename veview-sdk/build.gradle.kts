@@ -81,6 +81,8 @@ publishing {
 
 dependencyLocking {
     lockAllConfigurations()
+    lockFile = file("$rootDir/dependency-locks/veview-sdk.lockfile")
+    lockMode = LockMode.STRICT
 }
 
 dependencies {
