@@ -8,7 +8,9 @@ plugins {
 
 android {
     namespace = "com.veview.veviewsdk"
-    compileSdk = 34
+    compileSdk {
+        version = release(36)
+    }
     defaultConfig {
         minSdk = 24
 
@@ -71,7 +73,7 @@ publishing {
             }
             groupId = "com.github.SunnyBe"
             artifactId = "veview-sdk"
-            version = "0.0.3"
+            version = "0.0.4"
         }
     }
     repositories {

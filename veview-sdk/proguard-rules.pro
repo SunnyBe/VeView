@@ -1,16 +1,26 @@
-# Keep all public classes and members of the SDK's public API
--keep public class com.veview.veviewsdk.presentation.VeViewSDK { *; }
--keep public class com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }
--keep public class com.veview.veviewsdk.configs.** { *; }
--keep public class com.veview.veviewsdk.model.** { *; }
+# ProGuard rules for the veview-sdk module's test build (e.g., testReleaseUnitTest).
+# These rules prevent R8 from removing classes and members needed by MockK via reflection.
 
-# If your analysis engine uses a library like Gson/Moshi for parsing JSON,
-# you must keep the data model classes that are used for serialization.
-# For example:
-# -keep class com.veview.veview_sdk.analysis.network.ApiResponseModel { *; }
+# --- Keep Test Frameworks ---
+# Keep testing libraries themselves from being stripped.
+-keep class io.mockk.** { *; }
+-keep class app.cash.turbine.** { *; }
 
-# Keep the names of any methods annotated for use by libraries like Retrofit.
-# (This is just an example, adapt as needed)
-# -keepclassmembers interface * {
-#     @retrofit2.http.* <methods>;
-# }
+# --- Keep Class Under Test ---
+# The primary implementation class being tested.
+-keep class com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl { *; }
+
+# --- Keep Mocked Interfaces and Factories ---
+# These interfaces are mocked in tests to isolate the class under test from its dependencies.
+-keep interface com.veview.veviewsdk.domain.contracts.AnalysisEngine { *; }
+-keep interface com.veview.veviewsdk.domain.contracts.AudioCaptureProvider { *; }
+-keep interface com.veview.veviewsdk.domain.contracts.AudioCaptureProvider$Factory { *; }
+-keep interface com.veview.veviewsdk.domain.contracts.ConfigProvider { *; }
+-keep interface com.veview.veviewsdk.domain.contracts.DispatcherProvider { *; }
+
+# --- Keep State and Data Models ---
+# These are data/state classes used for setting up tests and verifying results.
+# Using wildcards is robust for sealed class hierarchies like VoiceReviewState and AudioRecordState.
+-keep class com.veview.veviewsdk.presentation.voicereview.** { *; }
+-keep class com.veview.veviewsdk.domain.model.** { *; }
+-keep class com.veview.veviewsdk.data.configs.** { *; }

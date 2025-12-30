@@ -1,7 +1,9 @@
 package com.veview.veviewsdk.data.audiocapture
 
+import android.Manifest
 import android.content.Context
 import android.media.AudioRecord
+import androidx.annotation.RequiresPermission
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
@@ -45,6 +47,7 @@ internal class AndroidAudioCaptureProvider(
     private var isRecording = AtomicBoolean(false)
     private var recordingFile: File? = null // Keep track of the file
 
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun startRecording(
         fileName: String,
         config: VoiceReviewConfig,
@@ -57,8 +60,6 @@ internal class AndroidAudioCaptureProvider(
 
         val outputFile = generateOutputFile(config, fileName)
 
-        var fileOutputStream: FileOutputStream? = null
-
         val minBufferSize = AudioRecord.getMinBufferSize(
             config.sampleRate,
             config.channelConfig,
@@ -69,7 +70,7 @@ internal class AndroidAudioCaptureProvider(
 
         audioRecord = createAudioRecordInstance(config, bufferSize)
 
-        fileOutputStream = FileOutputStream(outputFile, true)
+        val fileOutputStream = FileOutputStream(outputFile, true)
         val audioBuffer = ByteArray(bufferSize)
 
         audioRecord?.startRecording()
@@ -153,6 +154,7 @@ internal class AndroidAudioCaptureProvider(
             file
         }
 
+    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     private fun createAudioRecordInstance(
         config: VoiceReviewConfig,
         bufferSize: Int
