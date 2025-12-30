@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    id("maven-publish")
+    `maven-publish`
 }
 
 android {
@@ -17,6 +17,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
     }
 
     buildTypes {
@@ -57,12 +64,20 @@ android {
             }
         }
     }
-
-
 }
 
-group = "com.veview"
-version = "0.0.1"
+publishing {
+    publications {
+        create<MavenPublication>("release") {
+            afterEvaluate {
+                from(components["release"])
+            }
+            groupId = "com.veview"
+            artifactId = "veview-sdk"
+            version = "0.0.1"
+        }
+    }
+}
 
 dependencyLocking {
     lockAllConfigurations()
