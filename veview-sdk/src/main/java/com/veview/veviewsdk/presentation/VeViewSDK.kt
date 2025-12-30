@@ -1,6 +1,7 @@
 package com.veview.veviewsdk.presentation
 
 import android.content.Context
+import androidx.annotation.Keep
 import androidx.annotation.MainThread
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.logging.LogLevel
@@ -31,6 +32,7 @@ import kotlin.time.Duration.Companion.seconds
  * @param apiKey Your public API key.
  * @param okHttpClient A custom OkHttpClient for network requests.
  */
+@Keep
 class VeViewSDK private constructor(
     private val apiKey: String,
     private val okHttpClient: OkHttpClient,
@@ -90,6 +92,7 @@ class VeViewSDK private constructor(
      * This allows for a flexible and clear setup.
      * @param apiKey Your public API key, required for all configurations.
      */
+    @Keep
     class Builder(private val apiKey: String, isDebug: Boolean = false) {
 
         private var okHttpClient: OkHttpClient? = null

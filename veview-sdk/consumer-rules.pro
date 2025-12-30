@@ -3,7 +3,10 @@
 
 # --- Public API Surface ---
 # Keep the main entry point and its public nested classes (e.g., Builder).
--keep public class com.veview.veviewsdk.presentation.** { *; }
+-keep class com.veview.veviewsdk.presentation.** { *; }
+-keep class com.veview.veviewsdk.presentation.VeViewSDK { *; }
+-keep class com.veview.veviewsdk.presentation.VeViewSDK$Companion { *; }
+-keep class com.veview.veviewsdk.presentation.VeViewSDK$Builder { *; }
 
 # Keep the public interface for the voice reviewer.
 -keep public interface com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }

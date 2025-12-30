@@ -24,3 +24,8 @@
 -keep class com.veview.veviewsdk.presentation.voicereview.** { *; }
 -keep class com.veview.veviewsdk.domain.model.** { *; }
 -keep class com.veview.veviewsdk.data.configs.** { *; }
+
+-keep class com.veview.veviewsdk.presentation.VeViewSDK$Companion { *; }
+-keep class com.veview.veviewsdk.presentation.VeViewSDK { *; }
+-keep class com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }
+
