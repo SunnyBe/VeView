@@ -1,6 +1,7 @@
 package com.veview.app.voicereview
 
 import android.media.AudioFormat
+import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -17,7 +18,6 @@ import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -31,11 +31,12 @@ class MainViewModel(
         MutableStateFlow(MainUiState.ReadyToRecord())
 
     @Suppress("MagicNumber")
-    val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<MainUiState> = _uiState
 
     init {
         viewModelScope.launch {
             uiStateFlowFromVoiceReviewer().collect { uiState ->
+                Log.d("MainViewModel", "UI_STATE[$uiState] ")
                 _uiState.value = uiState
             }
         }
@@ -46,7 +47,7 @@ class MainViewModel(
             when (state) {
                 VoiceReviewState.Cancelled -> MainUiState.ReadyToRecord()
 
-                is VoiceReviewState.Error -> MainUiState.Error(state.message)
+                is VoiceReviewState.Error -> MainUiState.Error("${state.errorType}: ${state.message}")
                 VoiceReviewState.Idle -> MainUiState.ReadyToRecord()
 
                 is VoiceReviewState.Initializing -> MainUiState.Recording(

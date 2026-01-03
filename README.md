@@ -86,6 +86,7 @@ We are continuously working to improve the VeView SDK. Here are some of the feat
 
 *   **Granular Error Handling**: We plan to replace the current generalized error reporting with a more granular system. This will provide specific error types for different failure scenarios, such as `AudioRecordPermission`, `InternetConnection`, and more, allowing for better error handling on the client-side.
 *   **Video Reviews**: We are working on incorporating video reviews into the SDK, allowing users to provide even richer feedback.
+*   **Retry analysis**: A failed analysis currently requires starting over. We will allow only analysis for the last recorded audio.
 
 ## 💬 Feedback and Support
 
