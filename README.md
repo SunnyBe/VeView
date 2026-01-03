@@ -1,7 +1,7 @@
 # VeView SDK for Android
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Latest Version](https://img.shields.io/badge/version-<what to do>-blue.svg)](https://jitpack.io/#SunnyBe/VeView/Tag)
+[![Latest Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://jitpack.io/#SunnyBe/VeView/Tag)
 
 The VeView SDK for Android provides a simple and powerful way to integrate voice feedback and review capabilities into your Android application. It handles audio recording, processing, and AI-powered transcription, allowing you to focus on building your app's core features.
 
@@ -37,7 +37,7 @@ Then, add the SDK dependency to your module's `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.github.SunnyBe:VeView:<what to do>")
+    implementation("com.github.SunnyBe:VeView:1.0.0")
 }
 ```
 
@@ -90,7 +90,7 @@ We are continuously working to improve the VeView SDK. Here are some of the feat
 
 ## 💬 Feedback and Support
 
-If you encounter any issues, have questions, or would like to suggest a new feature, please [open an issue](<what to do>) on our GitHub repository. We appreciate your feedback and will do our best to address it as quickly as possible.
+If you encounter any issues, have questions, or would like to suggest a new feature, please [open an issue](https://github.com/SunnyBe/VeView/issues) on our GitHub repository. We appreciate your feedback and will do our best to address it as quickly as possible.
 
 ## 🤝 Contributor Setup
 
