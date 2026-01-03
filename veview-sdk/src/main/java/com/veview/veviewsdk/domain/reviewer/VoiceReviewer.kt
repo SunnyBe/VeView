@@ -1,43 +1,36 @@
 package com.veview.veviewsdk.domain.reviewer
 
-import com.aallam.openai.client.OpenAI
-import com.squareup.moshi.Moshi
-import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
-import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
-import com.veview.veviewsdk.domain.contracts.ConfigProvider
-import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Provide Voice reviewer with state of voice review
+ * Provides a comprehensive interface for managing the voice review process, including the state of the review.
  */
 interface VoiceReviewer {
-    val state: StateFlow<VoiceReviewState>
-    fun start(reviewContext: ReviewContext)
-    fun stop()
-    fun cancel()
 
-    // DNF: This should be a factory if at all, impl details is been exposed here!
-    companion object {
-        @Suppress("LongParameterList")
-        internal fun create(
-            configProvider: ConfigProvider,
-            dispatcherProvider: DispatcherProvider,
-            coroutineScope: CoroutineScope,
-            audioProviderFactory: AudioCaptureProvider.Factory,
-            openAI: OpenAI,
-            moshi: Moshi
-        ): VoiceReviewer {
-            return VoiceReviewerImpl(
-                analysisEngine = OpenAIAnalysisEngine(openAI, moshi),
-                configProvider = configProvider,
-                coroutineScope = coroutineScope,
-                coroutineDispatcher = dispatcherProvider,
-                audioProviderFactory = audioProviderFactory
-            )
-        }
-    }
+    /**
+     * A [StateFlow] that emits the current state of the voice review process.
+     * This allows clients to observe the entire lifecycle of a voice review, from recording to completion.
+     */
+    val state: StateFlow<VoiceReviewState>
+
+    /**
+     * Starts the voice review process.
+     *
+     * @param reviewContext The context of the review, including a unique identifier.
+     */
+    fun start(reviewContext: ReviewContext)
+
+    /**
+     * Stops the voice recording.
+     * The recorded audio will then be processed.
+     */
+    fun stop()
+
+    /**
+     * Cancels the voice review process.
+     * This will stop the recording and any ongoing processing.
+     */
+    fun cancel()
 }

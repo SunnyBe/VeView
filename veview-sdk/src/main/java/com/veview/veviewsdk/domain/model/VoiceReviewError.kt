@@ -2,7 +2,7 @@ package com.veview.veviewsdk.domain.model
 
 /**
  * Defines specific, typed errors that can occur during the voice review process.
- * This allows the consuming application to programmatically handle different failure scenarios.
+ * This allows the client application to programmatically handle different failure scenarios.
  */
 enum class VoiceReviewError {
     AUDIO_ANALYSIS_FAILURE,

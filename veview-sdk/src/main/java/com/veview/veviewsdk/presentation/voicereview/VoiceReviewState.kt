@@ -57,7 +57,7 @@ sealed interface VoiceReviewState {
      * An error occurred at some point during the voice review lifecycle.
      * This state provides details about the error.
      *
-     * @param errorType A specific error type to allow for more granular error handling.
+     * @param errorType A specific [VoiceReviewError] type to allow for more granular error handling.
      * @param message A developer-facing message describing the error.
      * @param throwable The exception that was thrown, useful for debugging.
      */

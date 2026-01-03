@@ -23,6 +23,7 @@ timber = "5.0.1"
 truth = "1.4.5"
 truthVersion = "1.4.5"
 turbine = "1.2.1"
+veview = "1.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -52,6 +53,7 @@ openai-client = { module = "com.aallam.openai:openai-client", version.ref = "ope
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 truth = { module = "com.google.truth:truth", version.ref = "truth" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
+veview = { module = "com.github.SunnyBe:VeView", version.ref = "veview" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

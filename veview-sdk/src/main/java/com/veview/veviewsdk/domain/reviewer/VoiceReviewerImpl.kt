@@ -2,6 +2,8 @@ package com.veview.veviewsdk.domain.reviewer
 
 import android.Manifest
 import androidx.annotation.RequiresPermission
+import com.aallam.openai.client.OpenAI
+import com.squareup.moshi.Moshi
 import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
 import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.AnalysisEngine
@@ -196,5 +198,23 @@ internal class VoiceReviewerImpl internal constructor(
 
     companion object {
         private const val LOG_TAG = "VoiceReviewerImpl"
+
+        @Suppress("LongParameterList")
+        internal fun create(
+            configProvider: ConfigProvider,
+            dispatcherProvider: DispatcherProvider,
+            coroutineScope: CoroutineScope,
+            audioProviderFactory: AudioCaptureProvider.Factory,
+            openAI: OpenAI,
+            moshi: Moshi
+        ): VoiceReviewer {
+            return VoiceReviewerImpl(
+                analysisEngine = OpenAIAnalysisEngine(openAI, moshi),
+                configProvider = configProvider,
+                coroutineScope = coroutineScope,
+                coroutineDispatcher = dispatcherProvider,
+                audioProviderFactory = audioProviderFactory
+            )
+        }
     }
 }

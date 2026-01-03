@@ -1,7 +1,7 @@
 # VeView SDK for Android
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Latest Version](https://img.shields.io/badge/version-v0.0.1-blue.svg)](<fill content manually: link to releases>)
+[![Latest Version](https://img.shields.io/badge/version-<what to do>-blue.svg)](https://jitpack.io/#SunnyBe/VeView/Tag)
 
 The VeView SDK for Android provides a simple and powerful way to integrate voice feedback and review capabilities into your Android application. It handles audio recording, processing, and AI-powered transcription, allowing you to focus on building your app's core features.
 
@@ -18,101 +18,78 @@ The VeView SDK for Android provides a simple and powerful way to integrate voice
 
 ## 🚀 Getting Started
 
+Here's a quick guide to get you up and running. For more detailed instructions, see our [SDK Usage Guide](SDK_USAGE.md).
+
 ### 1. Add the Dependency
 
-Add the following to your `build.gradle.kts` or `build.gradle` file.
+Add the JitPack repository to your `settings.gradle.kts`:
+```kotlin
+// settings.gradle.kts
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
 
-`<fill content manually: Add your hosting instructions here, e.g., Maven Central, JitPack, etc.>`
-
-**Example for Maven Central:**
-
+Then, add the SDK dependency to your module's `build.gradle.kts`:
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.veview:veview-sdk:0.0.1") // Replace with the latest version
+    implementation("com.github.SunnyBe:VeView:<what to do>")
 }
 ```
 
-### 2. Add Permissions
+### 2. Initialize the SDK
 
-Declare the required permissions in your app's `AndroidManifest.xml`:
-
-```xml
-<uses-permission android:name="android.permission.RECORD_AUDIO" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-```
-
-### 3. Initialize the SDK
-
-Initialize the `VoiceReviewer` in your `Application`, `Activity`, or `Fragment`. It's recommended to do this in a `ViewModel` to persist it across configuration changes.
+Here is a basic setup using default configurations.
 
 ```kotlin
-class MyReviewViewModel(application: Application) : AndroidViewModel(application) {
+val veViewSDK = VeViewSDK.Builder(
+    apiKey = "YOUR_API_KEY_HERE",
+).build()
 
-    private val voiceReviewer: VoiceReviewer = VoiceReviewer.create(
-        context = application,
-        apiKey = "<fill content manually: YOUR_VEVIEW_API_KEY>",
-        okHttpClient = OkHttpClient(), // Optional: Provide your own OkHttpClient instance
-        configProvider = LocalConfigProviderImpl(application) // Optional: Provide a custom config provider
-    )
-
-    val voiceReviewState: StateFlow<VoiceReviewState> = voiceReviewer.state
-
-    fun startVoiceReview(activity: Activity, reviewId: String) {
-        voiceReviewer.start(activity, ReviewContext(reviewId = reviewId))
-    }
-}
+// Get a VoiceReviewer instance with default configurations
+val voiceReviewer = veViewSDK.newAudioReviewer(
+    context = applicationContext
+)
 ```
 
-## 🎤 Usage
+### 3. Basic Usage
 
-### Start a Voice Review
-
-To start a voice review, simply call the `start` method.
+To start a voice review, create a `ReviewContext` and call the `start` method.
 
 ```kotlin
-viewModel.startVoiceReview(this, "review-id-12345")
+// Create a context for the review
+val reviewContext = ReviewContext(reviewId = "unique-review-id-123")
+
+// Start the voice review process
+voiceReviewer.start(reviewContext)
 ```
 
-### Observe the State
+You can observe the `voiceReviewer.state` to get updates on the review process (recording, processing, success, or error).
 
-Collect the `StateFlow<VoiceReviewState>` to react to changes in the voice review process and update your UI accordingly.
+If you need to cancel the review at any point, simply call the `cancel` method.
 
 ```kotlin
-lifecycleScope.launch {
-    viewModel.voiceReviewState.collect { state ->
-        when (state) {
-            is VoiceReviewState.Idle -> { /* SDK is ready to start a new recording */ }
-            is VoiceReviewState.Recording -> {
-                val progress = state.progress // 0.0 to 1.0
-                /* Update UI to show recording is in progress */
-            }
-            is VoiceReviewState.Processing -> { /* The recording is being processed and transcribed */ }
-            is VoiceReviewState.Success -> {
-                val transcription = state.transcription
-                /* Voice review completed, you have the text! */
-            }
-            is VoiceReviewState.Error -> {
-                val errorMessage = state.message
-                /* An error occurred, handle it appropriately */
-            }
-        }
-    }
-}
+voiceReviewer.cancel()
 ```
 
-## ⚙️ Configuration
+This will stop the recording and any ongoing processing.
 
-You can easily override the default SDK settings by creating a `veview_config.json` file in your app's `res/raw` directory.
+For more advanced usage and configuration options, please refer to the [SDK Usage Guide](SDK_USAGE.md).
 
-**Example `res/raw/veview_config.json`:**
+## 🗺️ Roadmap
 
-```json
-{
-  "maxRecordingDurationMillis": 60000,
-  "removeFileAfterAnalysis": true
-}
-```
+We are continuously working to improve the VeView SDK. Here are some of the features and enhancements you can expect in future releases:
+
+*   **Granular Error Handling**: We plan to replace the current generalized error reporting with a more granular system. This will provide specific error types for different failure scenarios, such as `AudioRecordPermission`, `InternetConnection`, and more, allowing for better error handling on the client-side.
+*   **Video Reviews**: We are working on incorporating video reviews into the SDK, allowing users to provide even richer feedback.
+
+## 💬 Feedback and Support
+
+If you encounter any issues, have questions, or would like to suggest a new feature, please [open an issue](<what to do>) on our GitHub repository. We appreciate your feedback and will do our best to address it as quickly as possible.
 
 ## 🤝 Contributor Setup
 

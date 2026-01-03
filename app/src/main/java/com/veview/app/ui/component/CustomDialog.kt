@@ -34,7 +34,7 @@ fun CustomDialog(
     onRetry: (() -> Unit)? = null
 ) {
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismiss
     ) {
         Card(
             modifier = Modifier
