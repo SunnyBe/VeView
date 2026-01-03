@@ -56,8 +56,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":veview-sdk"))
-//    implementation(libs.veview)
+//    implementation(project(":veview-sdk"))
+    implementation(libs.veview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
