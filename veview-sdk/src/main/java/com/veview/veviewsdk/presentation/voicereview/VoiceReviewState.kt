@@ -59,13 +59,11 @@ sealed interface VoiceReviewState {
      *
      * @param errorType A specific error type to allow for more granular error handling.
      * @param message A developer-facing message describing the error.
-     * @param userFriendlyMessage An optional message that is safe to display to the user.
      * @param throwable The exception that was thrown, useful for debugging.
      */
     data class Error(
         val errorType: VoiceReviewError,
         val message: String,
-        val userFriendlyMessage: String? = null,
         val throwable: Throwable? = null
     ) : VoiceReviewState
 

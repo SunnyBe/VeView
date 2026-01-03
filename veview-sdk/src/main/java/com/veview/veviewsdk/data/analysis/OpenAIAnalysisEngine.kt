@@ -49,7 +49,7 @@ internal class OpenAIAnalysisEngine(
             )
         } catch (cause: Exception) {
             Timber.tag(LOG_TAG).e(cause, "Analysis failed: ${cause.message}")
-            throw AnalysisFailedException("Analysis failed", cause)
+            throw AnalysisFailedException(cause.message ?: "Unknown issue with connection", cause)
         }
     }
 
@@ -66,9 +66,8 @@ internal class OpenAIAnalysisEngine(
 
             return response.text
         } catch (e: OpenAIAPIException) {
-            Timber.tag(LOG_TAG).e(e, "OpenAI API error during transcription: ${e.message}")
-            val detailedMessage =
-                "Transcription failed with API error: ${e.error.detail?.message} (Code: ${e.error.detail?.code})"
+            val detailedMessage = "(Code: ${e.error.detail?.code}) ${e.error.detail?.message}"
+            Timber.tag(LOG_TAG).e(e, "Transcription failed: $detailedMessage")
             throw AnalysisFailedException(detailedMessage, e)
         }
     }
@@ -126,6 +125,7 @@ internal class OpenAIAnalysisEngine(
     companion object {
         private const val LOG_TAG = "OpenAIAnalysisEngine"
     }
-}
 
-class AnalysisFailedException(message: String, cause: Throwable? = null) : Exception(message, cause)
+    internal class AnalysisFailedException(message: String, cause: Throwable? = null) :
+        Exception(message, cause)
+}

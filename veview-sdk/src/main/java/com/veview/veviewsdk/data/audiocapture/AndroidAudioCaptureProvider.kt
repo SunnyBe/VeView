@@ -117,7 +117,9 @@ internal class AndroidAudioCaptureProvider(
         Timber.e(cause, "Error in audio recording flow.")
         isRecording.set(false)
         if (cause !is CancellationException) {
-            emit(AudioRecordState.Error(cause.message ?: "Unknown error"))
+            val exception =
+                AudioRecordingException(cause.message, cause)
+            emit(AudioRecordState.Error(exception))
         } else {
             throw cause // Stop subsequent processing on cancellation
         }
@@ -187,4 +189,7 @@ internal class AndroidAudioCaptureProvider(
             )
         }
     }
+
+    internal class AudioRecordingException(message: String?, cause: Throwable? = null) :
+        Exception(message, cause)
 }

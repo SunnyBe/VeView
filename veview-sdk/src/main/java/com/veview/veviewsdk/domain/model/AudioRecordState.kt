@@ -36,5 +36,5 @@ sealed interface AudioRecordState {
 
     data class Stopped(val stop: Instant) : AudioRecordState // Recording stopped
     data class Done(val audioFile: File) : AudioRecordState // Recording done
-    data class Error(val message: String) : AudioRecordState // Error occurred
+    data class Error(val exception: Exception) : AudioRecordState // Error occurred
 }

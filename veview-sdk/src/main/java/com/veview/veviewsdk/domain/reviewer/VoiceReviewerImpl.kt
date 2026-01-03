@@ -2,7 +2,8 @@ package com.veview.veviewsdk.domain.reviewer
 
 import android.Manifest
 import androidx.annotation.RequiresPermission
-import com.veview.veviewsdk.data.analysis.AnalysisFailedException
+import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
+import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.AnalysisEngine
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.ConfigProvider
@@ -50,7 +51,7 @@ internal class VoiceReviewerImpl internal constructor(
             // Active session is running. TODO Record Non-fatal
             Timber.tag(LOG_TAG).w("An active session is in progress.")
             _state.value = VoiceReviewState.Error(
-                errorType = VoiceReviewError.RECORDING_FAILED,
+                errorType = VoiceReviewError.AUDIO_CAPTURE_FAILURE,
                 message = "There is an active recording session.",
                 throwable = IllegalStateException("There is an active recording session.")
             )
@@ -83,12 +84,15 @@ internal class VoiceReviewerImpl internal constructor(
                 throw cause
             } catch (cause: Exception) {
                 val errorType = when (cause) {
-                    is AnalysisFailedException -> VoiceReviewError.PROCESSING_FAILED
+                    is OpenAIAnalysisEngine.AnalysisFailedException ->
+                        VoiceReviewError.AUDIO_ANALYSIS_FAILURE
+                    is AndroidAudioCaptureProvider.AudioRecordingException ->
+                        VoiceReviewError.AUDIO_CAPTURE_FAILURE
                     else -> VoiceReviewError.UNKNOWN
                 }
                 _state.value = VoiceReviewState.Error(
                     errorType = errorType,
-                    message = "An Unexpected error occurred: ${cause.message}",
+                    message = "${cause.message}",
                     throwable = cause
                 )
                 sessionAudioProvider.set(null)
@@ -128,9 +132,9 @@ internal class VoiceReviewerImpl internal constructor(
 
             is AudioRecordState.Error -> {
                 _state.value = VoiceReviewState.Error(
-                    errorType = VoiceReviewError.RECORDING_FAILED,
-                    message = "Recording error: ${state.message}",
-                    throwable = IllegalStateException(state.message)
+                    errorType = VoiceReviewError.AUDIO_CAPTURE_FAILURE,
+                    message = state.exception.message ?: "Unknown audio capture issue",
+                    throwable = state.exception
                 )
             }
 

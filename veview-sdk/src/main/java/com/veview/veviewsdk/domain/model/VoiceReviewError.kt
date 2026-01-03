@@ -5,12 +5,8 @@ package com.veview.veviewsdk.domain.model
  * This allows the consuming application to programmatically handle different failure scenarios.
  */
 enum class VoiceReviewError {
-    AUTHENTICATION_FAILURE,
-    PERMISSION_MICROPHONE_DENIED,
-    TRANSCRIPTION_FAILED,
-    PROCESSING_FAILED,
-    NETWORK_ERROR,
+    AUDIO_ANALYSIS_FAILURE,
     CANCELLED,
-    RECORDING_FAILED,
+    AUDIO_CAPTURE_FAILURE,
     UNKNOWN
 }

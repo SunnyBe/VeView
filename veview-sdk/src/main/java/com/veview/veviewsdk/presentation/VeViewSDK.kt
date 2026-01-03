@@ -118,6 +118,7 @@ class VeViewSDK private constructor(
          * Builds and returns a configured [VeViewSDK] instance.
          */
         fun build(): VeViewSDK {
+            check(apiKey.isNotBlank()) { "API is a blank string" }
             val finalOkHttpClient = this.okHttpClient ?: OkHttpClient()
 
             return VeViewSDK(
@@ -144,7 +145,7 @@ class VeViewSDK private constructor(
          */
         @MainThread
         fun init(apiKey: String, isDebug: Boolean = false) {
-            check(instance == null) {
+            check(instance != null) {
                 "VeViewSDK.init() already called. For a new instance use the Builder."
             }
             instance = Builder(apiKey, isDebug = isDebug).build()
