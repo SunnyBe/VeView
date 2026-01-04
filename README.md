@@ -16,6 +16,20 @@ The VeView SDK for Android provides a simple and powerful way to integrate voice
 *   **Dynamic Configuration**: Alter SDK behavior on the fly using local or remote configuration providers.
 *   **Testable**: Designed for testability, with decoupled business logic and hardware interactions.
 
+## 📸 Demo
+
+### Happy Path
+
+<p align="center">
+  <img src="not-ready-yet" alt="Happy path demo" width="300"/>
+</p>
+
+### Non-Happy Path
+
+<p align="center">
+  <img src="demo/quick_demo.gif" alt="Non-happy path demo" width="300"/>
+</p>
+
 ## 🚀 Getting Started
 
 Here's a quick guide to get you up and running. For more detailed instructions, see our [SDK Usage Guide](SDK_USAGE.md).

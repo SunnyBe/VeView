@@ -48,7 +48,6 @@ internal class VoiceReviewerImpl internal constructor(
     @Suppress("TooGenericExceptionCaught")
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun start(reviewContext: ReviewContext) {
-        println("Start Hit: Is session active: ${sessionJob?.isActive}")
         if (sessionJob?.isActive == true) {
             // Active session is running. TODO Record Non-fatal
             Timber.tag(LOG_TAG).w("An active session is in progress.")
@@ -59,8 +58,6 @@ internal class VoiceReviewerImpl internal constructor(
             )
             return
         }
-
-        println("I am here because there is no active session.")
 
         Timber.tag(LOG_TAG).d("Listening started")
         _state.value = VoiceReviewState.Initializing(reviewContext)
@@ -166,7 +163,6 @@ internal class VoiceReviewerImpl internal constructor(
 
     override fun cancel() {
         sessionAudioProvider.set(null)
-        println("Do I have an active session to cancel? ${sessionJob?.isActive}")
         if (sessionJob?.isActive == true) {
             Timber.tag(LOG_TAG).d("Canceling voice review session.")
             sessionJob?.cancel("Voice review cancelled by user.")
