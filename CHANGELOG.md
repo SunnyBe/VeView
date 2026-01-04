@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - VeView SDK improvements
+## [1.0.1] - 2025.01.04
+
+### Added
+- Comprehensive logging within the `OpenAIAnalysisEngine` to provide deeper insights into the transcription and analysis process.
+
+### Fixed
+- Resolved a critical bug causing JSON parsing failures from the OpenAI service by refining the internal `GptAnalysisResponse` data model to handle field mismatches gracefully.
+
+### Changed
+- Improved error propagation within the analysis engine by wrapping failures in a specific `AnalysisFailedException` for clearer debugging context.
+
+## [1.0.0] - 2025.01.03
 
 ### Added
 
@@ -19,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Removed unused code and dependencies to streamline the SDK and improve performance.
 
-## [0.0.7] - 2024-08-01
+## [0.0.7] - 2025-01-01
 
 ### Added
 
