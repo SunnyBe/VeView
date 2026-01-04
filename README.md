@@ -20,14 +20,24 @@ The VeView SDK for Android provides a simple and powerful way to integrate voice
 
 ### Happy Path
 
+The following GIF demonstrates the ideal user flow, from initiating a voice review to successfully receiving the transcribed and analyzed feedback. For a more detailed look, you can also view the full [MP4 video](demo/demo_happy_path.mp4).
+
 <p align="center">
-  <img src="not-ready-yet" alt="Happy path demo" width="300"/>
+  <img src="demo/demo_happy_path.gif" alt="Happy path demo" width="300"/>
 </p>
 
-### Non-Happy Path
+### Non-Happy Paths
+
+Even when things don't go as planned, the SDK provides clear feedback to the user. Here are a few examples of how errors are handled:
 
 <p align="center">
-  <img src="demo/quick_demo.gif" alt="Non-happy path demo" width="300"/>
+  <img src="demo/demo_non_happy_string_parsing.gif" alt="Non-happy path demo - String parsing error" width="300"/>
+  <em>String parsing error during analysis</em>
+</p>
+
+<p align="center">
+  <img src="demo/demo_unhappy_socket_close.gif" alt="Non-happy path demo - Socket closed" width="300"/>
+  <em>Socket closed during analysis</em>
 </p>
 
 ## 🚀 Getting Started
@@ -101,6 +111,8 @@ We are continuously working to improve the VeView SDK. Here are some of the feat
 *   **Granular Error Handling**: We plan to replace the current generalized error reporting with a more granular system. This will provide specific error types for different failure scenarios, such as `AudioRecordPermission`, `InternetConnection`, and more, allowing for better error handling on the client-side.
 *   **Video Reviews**: We are working on incorporating video reviews into the SDK, allowing users to provide even richer feedback.
 *   **Retry analysis**: A failed analysis currently requires starting over. We will allow only analysis for the last recorded audio.
+*   **Multi-Language Reviews**: We are planning to add support for multiple languages, allowing users to provide feedback in their preferred language.
+*   **Custom Prompts and Configuration**: Future versions will allow clients to provide their own custom prompts and other business configurations through a JSON file in their `res/raw` directory, offering greater flexibility.
 
 ## 💬 Feedback and Support
 
