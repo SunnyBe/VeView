@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.arturbosch.detekt) apply true
     alias(libs.plugins.gradle.ktlint) apply true
+    alias(libs.plugins.ksp) apply false
 }
 
 val detektFormatting = libs.detekt.formatting

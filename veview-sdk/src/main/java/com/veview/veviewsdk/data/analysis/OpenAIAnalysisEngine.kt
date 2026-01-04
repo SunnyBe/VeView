@@ -84,7 +84,6 @@ internal class OpenAIAnalysisEngine(
             )
 
             val chatCompletion = openAI.chatCompletion(request)
-            Timber.tag(LOG_TAG).d("POST_ANALYSIS RESPONSE: $chatCompletion")
 
             return chatCompletion.choices.firstOrNull()?.message?.content
                 ?: throw AnalysisFailedException("GPT response contained no choices")
@@ -99,7 +98,6 @@ internal class OpenAIAnalysisEngine(
     @OptIn(ExperimentalStdlibApi::class)
     private fun parseAnalysisJson(analysisJson: String): GptAnalysisResponse {
         try {
-            Timber.tag(LOG_TAG).d("PRE_CONVERTER RESPONSE: $analysisJson")
             val jsonAdapter = moshi.adapter(GptAnalysisResponse::class.java)
             val parsedAnalysis = jsonAdapter.fromJson(analysisJson)
                 ?: throw IllegalArgumentException("Failed to parse GPT analysis JSON")

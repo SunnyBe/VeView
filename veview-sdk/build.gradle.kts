@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ksp)
     `maven-publish`
 }
 
@@ -13,7 +14,7 @@ android {
     }
     defaultConfig {
         minSdk = 24
-        version = "1.0.1"
+        version = "1.0.1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -89,6 +90,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
 
     implementation("androidx.annotation:annotation:1.9.1")
 

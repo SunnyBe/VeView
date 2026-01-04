@@ -47,11 +47,7 @@ class VeViewSDK private constructor(
         OpenAI(config = openAiConfig)
     }
 
-    private val moshi by lazy {
-        Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-    }
+    private val moshi by lazy { Moshi.Builder().build() }
 
     /**
      * Creates a new [VoiceReviewer] instance.

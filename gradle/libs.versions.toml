@@ -23,7 +23,7 @@ timber = "5.0.1"
 truth = "1.4.5"
 truthVersion = "1.4.5"
 turbine = "1.2.1"
-veview = "1.0.0"
+veview = "1.0.1.01"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -62,4 +62,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 android-library = { id = "com.android.library", version.ref = "agp" }
 arturbosch-detekt = { id = "io.gitlab.arturbosch.detekt", version = "1.23.8" }
 gradle-ktlint = { id = "org.jlleitschuh.gradle.ktlint", version = "11.5.1" }
+ksp = { id = "com.google.devtools.ksp", version = "2.3.1" }
 
