@@ -2,7 +2,6 @@ package com.veview.veviewsdk.data.analysis.network
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
-import java.io.File
 
 // --- Data classes for Whisper Transcription ---
 
@@ -37,10 +36,8 @@ data class GptChoice(
 
 @JsonClass(generateAdapter = true)
 data class GptAnalysisResponse(
-    @Json(name = "transcript") val transcript: String,
-    @Json(name = "summary") val summary: String,
-    @Json(name = "estimatedRating") val estimatedRating: Int,
-    @Json(name = "pros") val pros: List<String>,
-    @Json(name = "cons") val cons: List<String>,
-    @Json(name = "audioFile") val audioFile: File?
+    @Json(name = "summary") val summary: String = "",
+    @Json(name = "rating") val rating: Int = 1,
+    @Json(name = "pros") val pros: List<String> = emptyList(),
+    @Json(name = "cons") val cons: List<String> = emptyList()
 )

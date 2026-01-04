@@ -42,7 +42,7 @@ internal class OpenAIAnalysisEngine(
             return VoiceReview(
                 transcript = transcript,
                 summary = parsedAnalysis.summary,
-                estimatedRating = parsedAnalysis.estimatedRating,
+                estimatedRating = parsedAnalysis.rating,
                 pros = parsedAnalysis.pros,
                 cons = parsedAnalysis.cons,
                 audioFile = audioFile
@@ -64,6 +64,7 @@ internal class OpenAIAnalysisEngine(
             )
             val response = openAI.transcription(request)
 
+            Timber.tag(LOG_TAG).d("TRANSCRIPTION RESPONSE: $response")
             return response.text
         } catch (e: OpenAIAPIException) {
             val detailedMessage = "(Code: ${e.error.detail?.code}) ${e.error.detail?.message}"
@@ -83,6 +84,7 @@ internal class OpenAIAnalysisEngine(
             )
 
             val chatCompletion = openAI.chatCompletion(request)
+            Timber.tag(LOG_TAG).d("POST_ANALYSIS RESPONSE: $chatCompletion")
 
             return chatCompletion.choices.firstOrNull()?.message?.content
                 ?: throw AnalysisFailedException("GPT response contained no choices")
@@ -97,6 +99,7 @@ internal class OpenAIAnalysisEngine(
     @OptIn(ExperimentalStdlibApi::class)
     private fun parseAnalysisJson(analysisJson: String): GptAnalysisResponse {
         try {
+            Timber.tag(LOG_TAG).d("PRE_CONVERTER RESPONSE: $analysisJson")
             val jsonAdapter = moshi.adapter(GptAnalysisResponse::class.java)
             val parsedAnalysis = jsonAdapter.fromJson(analysisJson)
                 ?: throw IllegalArgumentException("Failed to parse GPT analysis JSON")
@@ -115,7 +118,7 @@ internal class OpenAIAnalysisEngine(
             {
               "summary": "A one-sentence summary of the review.",
               "rating": an integer from 1 to 5, where 1 is very negative and 5 is very positive,
-              "pros": ["A list of positive points mentioned.", "Another positive point."],
+              "pros": ["A list of positive points mentioned."],
               "cons": ["A list of negative points mentioned."]
             }
             Do not include any text, explanation, or markdown formatting before or after the JSON object.

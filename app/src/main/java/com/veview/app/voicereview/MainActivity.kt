@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                 val uiState by viewModel.uiState.collectAsStateWithLifecycle()
                 VoiceRecordingScreen(
                     state = uiState,
-                    onStart = { viewModel.startReview("Coffee") },
+                    onStart = { viewModel.startReview("Restaurant") },
                     onPause = { viewModel.pauseReview() },
                     onCancel = { viewModel.cancelReview() },
                     onDone = { viewModel.onReviewDone() }
