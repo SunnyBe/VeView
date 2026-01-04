@@ -18,27 +18,17 @@ The VeView SDK for Android provides a simple and powerful way to integrate voice
 
 ## 📸 Demo
 
-### Happy Path
-
-The following GIF demonstrates the ideal user flow, from initiating a voice review to successfully receiving the transcribed and analyzed feedback. For a more detailed look, you can also view the full [MP4 video](demo/demo_happy_path.mp4).
+The following GIF demonstrates the ideal user flow, from initiating a voice review to successfully receiving the transcribed and analyzed feedback.
 
 <p align="center">
   <img src="demo/demo_happy_path.gif" alt="Happy path demo" width="300"/>
 </p>
 
-### Non-Happy Paths
+For more detailed examples, including error handling and the full end-to-end flow, please see our collection of demo videos and GIFs:
 
-Even when things don't go as planned, the SDK provides clear feedback to the user. Here are a few examples of how errors are handled:
-
-<p align="center">
-  <img src="demo/demo_non_happy_string_parsing.gif" alt="Non-happy path demo - String parsing error" width="300"/>
-  <em>String parsing error during analysis</em>
-</p>
-
-<p align="center">
-  <img src="demo/demo_unhappy_socket_close.gif" alt="Non-happy path demo - Socket closed" width="300"/>
-  <em>Socket closed during analysis</em>
-</p>
+*   [Full Happy Path (MP4)](demo/demo_happy_path.mp4)
+*   [Non-Happy Path: String Parsing Error (GIF)](demo/demo_non_happy_string_parsing.gif)
+*   [Non-Happy Path: Socket Closed (GIF)](demo/demo_unhappy_socket_close.gif)
 
 ## 🚀 Getting Started
 
