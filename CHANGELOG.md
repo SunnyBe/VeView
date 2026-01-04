@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1.04] - 2025.01.04
+
+### Fixed
+- Resolved a critical reflection crash (`KotlinReflectionInternalError`) in release builds by integrating the KSP annotation processor and removing default arguments from the `GptAnalysisResponse` data class. This ensures compatibility with code shrinkers like ProGuard.
+
+### Changed
+- Reduced excessive logging in the `OpenAIAnalysisEngine` to provide a cleaner and more focused output.
+
 ## [1.0.1] - 2025.01.04
 
 ### Added
