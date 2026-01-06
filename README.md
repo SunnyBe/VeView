@@ -9,6 +9,7 @@ The VeView SDK for Android provides a simple and powerful way to integrate voice
 
 *   **Effortless Integration**: Add voice review functionality to your app in minutes.
 *   **AI-Powered Transcription**: Converts spoken reviews into text using state-of-the-art AI.
+*   **Customizable Analysis**: Define your own data structure for the analysis response, giving you full control over the data you receive.
 *   **Modern Architecture**: Built with Kotlin, Coroutines, and Flow for a reactive, non-blocking, and thread-safe solution.
 *   **Robust State Management**: Observe the entire voice review lifecycle through a `StateFlow`, making UI updates a breeze.
 *   **Lifecycle Aware**: Seamlessly integrates with Android's lifecycle components (`ViewModel`, `Activity`, `Fragment`) to handle configuration changes gracefully.
@@ -94,7 +95,7 @@ voiceReviewer.cancel()
 
 This will stop the recording and any ongoing processing.
 
-For more advanced usage and configuration options, please refer to the [SDK Usage Guide](SDK_USAGE.md).
+For more advanced usage and configuration options, including how to use a custom data model for the analysis response, please refer to the [SDK Usage Guide](SDK_USAGE.md).
 
 ## 🗺️ Roadmap
 

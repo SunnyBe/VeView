@@ -2,8 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.0.2] - 2025.01.06
+
+### Added
+- **Customizable Analysis Response**: Introduced a major new feature allowing clients to define their own data structure for the analysis result.
+  - Added a new generic method, `newCustomAudioReviewer<T>()`, which takes a client-defined data class (`Class<T>`) and returns a `VoiceReviewer<T>`.
+  - Introduced the `@FieldDescription` annotation, which allows clients to describe the fields in their custom data class. These descriptions are used to dynamically generate a precise prompt for the AI, ensuring an accurate and structured JSON response.
+
+### Changed
+- The core `AnalysisEngine` and `VoiceReviewer` interfaces are now generic (`AnalysisEngine<T>`, `VoiceReviewer<T>`) to support the new customizable analysis feature.
+- The `VoiceReviewState.Success` class is now also generic (`Success<T>`) and will contain the client-defined data model upon a successful analysis.
 
 ## [1.0.1.04] - 2025.01.04
 
