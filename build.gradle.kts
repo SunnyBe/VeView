@@ -38,3 +38,31 @@ subprojects {
         }
     }
 }
+
+tasks.register("releaseLocal") {
+    group = "Check SDK release"
+    description = "Run assemble release and generates aar for us to see what is compiled."
+
+    val clientProject = subprojects.firstOrNull { it.name == "app" }
+        ?: error("app module does not exist.")
+
+    val sdkProject = subprojects.firstOrNull { it.name == "veview-sdk" }
+        ?: error("veview-sdk does not exist")
+
+    dependsOn("${sdkProject.name}:assembleRelease") // generate release aar for sdk
+
+    doLast {
+        val sdkVersion = sdkProject.version.toString().takeIf { it != "unspecified" } ?: "local"
+        val aarFile = sdkProject.layout.buildDirectory.file("outputs/aar/veview-sdk-release.aar").get().asFile
+
+        check(aarFile.isFile) { "AAR file not found at ${aarFile.path}" }
+
+        copy {
+            from(aarFile)
+            into(file("${clientProject.projectDir}/libs"))
+            rename { "veview-sdk-release.$sdkVersion.aar" }
+        }
+
+        println("Copied SDK AAR version $sdkVersion to app/libs")
+    }
+}

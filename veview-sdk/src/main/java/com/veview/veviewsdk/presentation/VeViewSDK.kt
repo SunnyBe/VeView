@@ -20,7 +20,6 @@ import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import okhttp3.OkHttpClient
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
@@ -34,7 +33,6 @@ import kotlin.time.Duration.Companion.seconds
 @Keep
 class VeViewSDK private constructor(
     private val apiKey: String,
-    private val okHttpClient: OkHttpClient,
     private val isDebug: Boolean = false
 ) {
 
@@ -123,17 +121,6 @@ class VeViewSDK private constructor(
     @Keep
     class Builder(private val apiKey: String, private val isDebug: Boolean = false) {
 
-        private var okHttpClient: OkHttpClient? = null
-
-        /**
-         * Sets a custom [OkHttpClient] for the SDK to use for all network requests.
-         *
-         * @param client The OkHttpClient instance.
-         */
-        fun setOkHttpClient(client: OkHttpClient) = apply {
-            this.okHttpClient = client
-        }
-
         /**
          * Builds and returns a configured [VeViewSDK] instance.
          *
@@ -141,11 +128,9 @@ class VeViewSDK private constructor(
          */
         fun build(): VeViewSDK {
             check(apiKey.isNotBlank()) { "API key cannot be blank." }
-            val finalOkHttpClient = this.okHttpClient ?: OkHttpClient()
 
             return VeViewSDK(
                 apiKey = apiKey,
-                okHttpClient = finalOkHttpClient,
                 isDebug = isDebug
             )
         }
