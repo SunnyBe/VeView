@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.2] - 2025.01.06
+## [1.0.3] - 2025.01.06
 
 ### Added
 - **Customizable Analysis Response**: Introduced a major new feature allowing clients to define their own data structure for the analysis result.
