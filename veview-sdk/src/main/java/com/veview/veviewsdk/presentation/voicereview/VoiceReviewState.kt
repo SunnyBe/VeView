@@ -1,63 +1,61 @@
 package com.veview.veviewsdk.presentation.voicereview
 
 import com.veview.veviewsdk.domain.model.ReviewContext
-import com.veview.veviewsdk.domain.model.VoiceReview
 import com.veview.veviewsdk.domain.model.VoiceReviewError
 import java.io.File
 
 /**
- * Represents the various states of the voice review lifecycle. This sealed interface
- * provides a restricted class hierarchy for managing the state in a type-safe way.
+ * Represents the various states of the voice review lifecycle. This is a sealed interface,
+ * providing a restricted class hierarchy for managing state in a type-safe way.
+ *
+ * @param T The type of the successful analysis result.
  */
-sealed interface VoiceReviewState {
+sealed interface VoiceReviewState<out T> {
     /**
-     * The initial state or the state after a review process has completed or been cancelled.
-     * The system is ready to start a new voice review.
+     * The initial state before any review has started, or the final state after a review has
+     * been completed or cancelled. The system is ready for a new review.
      */
-    object Idle : VoiceReviewState
+    object Idle : VoiceReviewState<Nothing>
 
     /**
-     * The system is preparing for a voice review. This state includes requesting necessary
-     * permissions (like microphone access) and performing any authentication checks.
-     * This is an intermediate state before recording begins.
+     * The system is initializing for a new voice review. This may include requesting permissions
+     * or performing initial checks before recording begins.
      *
      * @param context The context for the review being initiated.
      */
-    data class Initializing(val context: ReviewContext) : VoiceReviewState
+    data class Initializing(val context: ReviewContext) : VoiceReviewState<Nothing>
 
     /**
-     * The system is actively recording audio from the microphone but has not yet
-     * started the transcription process. This state is useful for providing early
-     * feedback to the user that audio is being captured.
+     * The system is actively recording audio. This state provides feedback on the recording process.
      *
      * @param file The file where the recorded audio is being stored.
-     * @param durationMillis The current duration of the recording in milliseconds.
-     * @param amplitude The latest audio amplitude, useful for UI feedback.
+     * @param durationMillis The elapsed duration of the recording in milliseconds.
+     * @param amplitude The most recent audio amplitude, useful for UI visualizations.
      */
     data class Recording(val file: File?, val durationMillis: Long, val amplitude: Int) :
-        VoiceReviewState
+        VoiceReviewState<Nothing>
 
     /**
-     * Audio recording is complete, and the system is now processing the data. This includes
-     * transcription, and may also involve uploading the audio file to a server.
+     * The audio recording is complete, and the system is processing the data.
+     * This includes transcription and analysis.
      *
-     * @param file The audio file that was recorded.
+     * @param file The completed audio file that is being processed.
      */
-    data class Processing(val file: File) : VoiceReviewState
+    data class Processing(val file: File) : VoiceReviewState<Nothing>
 
     /**
-     * The voice review has been successfully processed, and the resulting data is available.
+     * The voice review was successfully processed, and the structured analysis result is available.
      * This is a terminal success state.
      *
-     * @param result The successfully processed voice review data.
+     * @param T The type of the result data.
+     * @param result The successfully processed voice review data of type [T].
      */
-    data class Success(val result: VoiceReview) : VoiceReviewState
+    data class Success<T>(val result: T) : VoiceReviewState<T>
 
     /**
-     * An error occurred at some point during the voice review lifecycle.
-     * This state provides details about the error.
+     * An error occurred during the voice review lifecycle. This state provides details about the failure.
      *
-     * @param errorType A specific [VoiceReviewError] type to allow for more granular error handling.
+     * @param errorType A specific [VoiceReviewError] to allow for granular error handling.
      * @param message A developer-facing message describing the error.
      * @param throwable The exception that was thrown, useful for debugging.
      */
@@ -65,10 +63,11 @@ sealed interface VoiceReviewState {
         val errorType: VoiceReviewError,
         val message: String,
         val throwable: Throwable? = null
-    ) : VoiceReviewState
+    ) : VoiceReviewState<Nothing>
 
     /**
      * The voice review process was explicitly cancelled by the user.
+     * This is a terminal state.
      */
-    object Cancelled : VoiceReviewState
+    object Cancelled : VoiceReviewState<Nothing>
 }

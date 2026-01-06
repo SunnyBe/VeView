@@ -10,13 +10,14 @@ import com.aallam.openai.client.OpenAI
 import com.aallam.openai.client.OpenAIConfig
 import com.aallam.openai.client.RetryStrategy
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.data.configs.LocalConfigProviderImpl
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
+import com.veview.veviewsdk.domain.model.VoiceReview
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl
-import com.veview.veviewsdk.presentation.VeViewSDK.Companion.init
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import okhttp3.OkHttpClient
@@ -25,7 +26,8 @@ import kotlin.time.Duration.Companion.seconds
 
 /**
  * The main entry point for the VeView SDK.
- * This class is responsible for configuring and creating instances of [VoiceReviewer].
+ * This class is responsible for configuring and creating instances of [VoiceReviewer] for both
+ * the default [VoiceReview] model and custom, client-defined data models.
  *
  * Use the [Builder] to construct a configured instance.
  */
@@ -36,7 +38,7 @@ class VeViewSDK private constructor(
     private val isDebug: Boolean = false
 ) {
 
-    val openAI by lazy {
+    internal val openAI by lazy {
         val openAiConfig = OpenAIConfig(
             token = this.apiKey,
             timeout = Timeout(socket = 60.seconds),
@@ -46,34 +48,65 @@ class VeViewSDK private constructor(
         OpenAI(config = openAiConfig)
     }
 
-    private val moshi by lazy { Moshi.Builder().build() }
+    internal val moshi = Moshi.Builder()
+        .add(KotlinJsonAdapterFactory())
+        .build()
+    internal val dispatcherProvider = DefaultDispatcherProvider
+    internal val reviewerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
 
     /**
-     * Creates a new [VoiceReviewer] instance.
-     * This instance is independent and can be used concurrently with other instances.
+     * Creates a new [VoiceReviewer] instance for the default [VoiceReview] data model.
+     * This is the standard implementation for getting a general-purpose review analysis.
      *
      * @param context The Android Context.
-     * @param config An optional [VoiceReviewConfig] to customize the behavior of the [VoiceReviewer].
-     * @return A new instance of [VoiceReviewer].
+     * @param config An optional [VoiceReviewConfig] to customize the behavior of the session.
+     * @return A new instance of [VoiceReviewer] that provides a [VoiceReview] result.
      */
     fun newAudioReviewer(
         context: Context,
         config: VoiceReviewConfig? = null
-    ): VoiceReviewer {
+    ): VoiceReviewer<VoiceReview> {
         initTooling()
 
-        Timber.tag(LOG_TAG).i("Creating VoiceReviewer")
-        val dispatcherProvider = DefaultDispatcherProvider
-        val reviewerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
-        val appConfigProvider = LocalConfigProviderImpl(context, config)
-
+        Timber.tag(LOG_TAG).i("Creating standard VoiceReviewer")
         return VoiceReviewerImpl.create(
-            configProvider = appConfigProvider,
+            configProvider = LocalConfigProviderImpl(context, config),
             dispatcherProvider = dispatcherProvider,
             coroutineScope = reviewerScope,
             audioProviderFactory = AndroidAudioCaptureProvider.apply { initialize(context) },
             openAI = openAI,
-            moshi = moshi
+            moshi = moshi,
+            responseType = VoiceReview::class.java
+        )
+    }
+
+    /**
+     * Creates a new [VoiceReviewer] instance for a custom, client-defined data model.
+     * This allows clients to define their own data structure and receive a typed result from the analysis.
+     *
+     * @param T The client-defined data class for the custom analysis response.
+     * @param context The Android Context.
+     * @param responseType The class of the custom data model (e.g., `MyCustomReview::class.java`),
+     *   used for deserializing the analysis response.
+     * @param config An optional [VoiceReviewConfig] to customize the behavior, such as providing a custom prompt.
+     * @return A new instance of [VoiceReviewer] typed to the custom data model [T].
+     */
+    fun <T> newCustomAudioReviewer(
+        context: Context,
+        responseType: Class<T>,
+        config: VoiceReviewConfig? = null
+    ): VoiceReviewer<T> {
+        initTooling()
+
+        Timber.tag(LOG_TAG).i("Creating custom VoiceReviewer for type ${responseType.simpleName}")
+        return VoiceReviewerImpl.create(
+            configProvider = LocalConfigProviderImpl(context, config),
+            dispatcherProvider = dispatcherProvider,
+            coroutineScope = reviewerScope,
+            audioProviderFactory = AndroidAudioCaptureProvider.apply { initialize(context) },
+            openAI = openAI,
+            moshi = moshi,
+            responseType = responseType
         )
     }
 
@@ -83,9 +116,8 @@ class VeViewSDK private constructor(
 
     /**
      * A builder for constructing [VeViewSDK] instances with custom configurations.
-     * This allows for a flexible and clear setup.
      *
-     * @param apiKey Your public API key. This is required and cannot be blank.
+     * @param apiKey Your public API key from the OpenAI Platform. This is required and cannot be blank.
      * @param isDebug Enables debug mode for the SDK, activating verbose logging.
      */
     @Keep
@@ -94,9 +126,7 @@ class VeViewSDK private constructor(
         private var okHttpClient: OkHttpClient? = null
 
         /**
-         * Sets a custom OkHttpClient for the SDK to use for network requests.
-         * For production use, it is recommended to provide a client with
-         * appropriate timeouts, caching, and interceptors as needed.
+         * Sets a custom [OkHttpClient] for the SDK to use for all network requests.
          *
          * @param client The OkHttpClient instance.
          */
@@ -132,7 +162,7 @@ class VeViewSDK private constructor(
          *
          * This method must be called on the main thread.
          *
-         * @param apiKey Your public API key.
+         * @param apiKey Your public API key from the OpenAI Platform.
          * @param isDebug Enables debug mode for the SDK, activating verbose logging.
          * @throws IllegalStateException if called more than once or if the API key is blank.
          */

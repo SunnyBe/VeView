@@ -59,9 +59,11 @@ dependencies {
 
 Here is a basic setup using default configurations.
 
+> **Note:** For now, the VeView SDK uses the OpenAI API for its analysis features. You will need to provide an API key from the [OpenAI Platform](https://platform.openai.com/) to initialize the SDK.
+
 ```kotlin
 val veViewSDK = VeViewSDK.Builder(
-    apiKey = "YOUR_API_KEY_HERE",
+    apiKey = "YOUR_OPENAI_API_KEY_HERE",
 ).build()
 
 // Get a VoiceReviewer instance with default configurations

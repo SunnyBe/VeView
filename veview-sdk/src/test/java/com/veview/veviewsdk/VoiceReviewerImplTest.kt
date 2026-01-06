@@ -38,10 +38,11 @@ class VoiceReviewerImplTest {
     // --- Mocks and Test Doubles ---
     private val mockAudioProviderFactory: AudioCaptureProvider.Factory = mockk()
     private val mockConfigProvider: ConfigProvider = mockk()
-    private val mockAnalysisEngine: AnalysisEngine = mockk()
+    private val mockAnalysisEngine: AnalysisEngine<VoiceReview> = mockk()
     private val mockAudioProvider: AudioCaptureProvider = mockk(relaxed = true)
 
     private val fakeAudioFile = File("fake/path/review_12345.wav")
+    private val fakeReviewSubject = ReviewContext.ReviewSubject("Harry Kitchen")
 
     // --- Coroutine Test Setup ---
     private val testDispatcher = StandardTestDispatcher()
@@ -53,7 +54,7 @@ class VoiceReviewerImplTest {
     }
 
     // --- Class Under Test ---
-    private lateinit var voiceReviewer: VoiceReviewerImpl
+    private lateinit var voiceReviewer: VoiceReviewerImpl<VoiceReview>
 
     @Before
     fun setUp() {
@@ -87,10 +88,10 @@ class VoiceReviewerImplTest {
     @Test
     fun `start() transitions through Initializing, Recording, Processing, and Success`() =
         testScope.runTest {
-            val reviewContext = ReviewContext("product-123", "Restaurant", true)
+            val reviewContext = ReviewContext("product-123", fakeReviewSubject)
             val fakeReview =
                 VoiceReview("transcript", "summary", 5, emptyList(), emptyList(), fakeAudioFile)
-            coEvery { mockAnalysisEngine.analyze(any()) } returns fakeReview
+            coEvery { mockAnalysisEngine.analyze(any(), any()) } returns fakeReview
 
             // Act & Assert
             voiceReviewer.state.test {
@@ -111,18 +112,18 @@ class VoiceReviewerImplTest {
 
                 // Verify mocks were called in the correct sequence
                 coVerify { mockAudioProvider.startRecording(any(), any(), any()) }
-                coVerify { mockAnalysisEngine.analyze(fakeAudioFile) }
+                coVerify { mockAnalysisEngine.analyze(fakeAudioFile, any()) }
             }
         }
 
     @Test
     fun `analysis engine throwing exception transitions to Error state`() = testScope.runTest {
         val exception = RuntimeException("Network failed")
-        coEvery { mockAnalysisEngine.analyze(any()) } throws exception
+        coEvery { mockAnalysisEngine.analyze(any(), any()) } throws exception
 
         voiceReviewer.state.test {
             awaitItem() // Idle
-            voiceReviewer.start(ReviewContext("product-123", "Restaurant", true))
+            voiceReviewer.start(ReviewContext("product-123", fakeReviewSubject))
             awaitItem() // Initializing
             runCurrent()
             awaitItem() // Recording
@@ -155,7 +156,7 @@ class VoiceReviewerImplTest {
             voiceReviewer.state.test {
                 awaitItem() // Idle
 
-                voiceReviewer.start(ReviewContext("p1", "f1", false))
+                voiceReviewer.start(ReviewContext("p1", fakeReviewSubject))
 
                 awaitItem() // Initializing
                 runCurrent() // Launch session job is pending, let's proceed to process it
@@ -188,7 +189,7 @@ class VoiceReviewerImplTest {
             assertThat(awaitItem()).isEqualTo(VoiceReviewState.Idle)
 
             // First start call
-            voiceReviewer.start(ReviewContext("first", "General", false))
+            voiceReviewer.start(ReviewContext("first", fakeReviewSubject))
 
             awaitItem() // Initializing
 
@@ -198,7 +199,7 @@ class VoiceReviewerImplTest {
             testDispatcher.scheduler.advanceUntilIdle() // advance to end of collection
 
             // Second start call while the first is running
-            voiceReviewer.start(ReviewContext("second", "General", false))
+            voiceReviewer.start(ReviewContext("second", fakeReviewSubject))
 
             // Assert that an error state was emitted
             val errorItem = awaitItem()

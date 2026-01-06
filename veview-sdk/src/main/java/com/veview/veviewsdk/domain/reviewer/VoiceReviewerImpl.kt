@@ -28,21 +28,21 @@ import timber.log.Timber
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.sqrt
 
-internal class VoiceReviewerImpl internal constructor(
+internal class VoiceReviewerImpl<T> internal constructor(
     private val configProvider: ConfigProvider,
-    private val analysisEngine: AnalysisEngine,
+    private val analysisEngine: AnalysisEngine<T>,
     private val audioProviderFactory: AudioCaptureProvider.Factory,
     private val coroutineScope: CoroutineScope,
     private val coroutineDispatcher: DispatcherProvider
-) : VoiceReviewer {
+) : VoiceReviewer<T> {
 
     private var sessionJob: Job? = null
 
     // This will hold the provider for the *current* session only.
     private val sessionAudioProvider = AtomicReference<AudioCaptureProvider?>(null)
 
-    private val _state = MutableStateFlow<VoiceReviewState>(VoiceReviewState.Idle)
-    override val state: StateFlow<VoiceReviewState>
+    private val _state = MutableStateFlow<VoiceReviewState<T>>(VoiceReviewState.Idle)
+    override val state: StateFlow<VoiceReviewState<T>>
         get() = _state.asStateFlow()
 
     @Suppress("TooGenericExceptionCaught")
@@ -75,7 +75,7 @@ internal class VoiceReviewerImpl internal constructor(
                     config.recordDuration
                 )
                     .collect { audioRecordingState ->
-                        handleAudioRecordingState(audioRecordingState)
+                        handleAudioRecordingState(audioRecordingState, reviewContext)
                     }
                 // proceeds to finally only when collection is done or cancelled.
             } catch (cause: CancellationException) {
@@ -103,7 +103,7 @@ internal class VoiceReviewerImpl internal constructor(
         }
     }
 
-    private suspend fun handleAudioRecordingState(state: AudioRecordState) {
+    private suspend fun handleAudioRecordingState(state: AudioRecordState, reviewContext: ReviewContext) {
         when (state) {
             is AudioRecordState.DataChunkReady -> {
                 val audioData = state.chunk
@@ -124,9 +124,9 @@ internal class VoiceReviewerImpl internal constructor(
                 _state.value = VoiceReviewState.Processing(state.audioFile)
                 val audioFile = state.audioFile
                 val result = withContext(coroutineDispatcher.io) {
-                    analysisEngine.analyze(audioFile)
+                    analysisEngine.analyze(audioFile, reviewContext)
                 }
-                _state.value = VoiceReviewState.Success(result)
+                _state.value = VoiceReviewState.Success(result = result)
             }
 
             is AudioRecordState.Error -> {
@@ -196,16 +196,17 @@ internal class VoiceReviewerImpl internal constructor(
         private const val LOG_TAG = "VoiceReviewerImpl"
 
         @Suppress("LongParameterList")
-        internal fun create(
+        internal fun <T> create(
             configProvider: ConfigProvider,
             dispatcherProvider: DispatcherProvider,
             coroutineScope: CoroutineScope,
             audioProviderFactory: AudioCaptureProvider.Factory,
             openAI: OpenAI,
-            moshi: Moshi
-        ): VoiceReviewer {
+            moshi: Moshi,
+            responseType: Class<T>
+        ): VoiceReviewer<T> {
             return VoiceReviewerImpl(
-                analysisEngine = OpenAIAnalysisEngine(openAI, moshi),
+                analysisEngine = OpenAIAnalysisEngine(openAI, moshi, responseType),
                 configProvider = configProvider,
                 coroutineScope = coroutineScope,
                 coroutineDispatcher = dispatcherProvider,

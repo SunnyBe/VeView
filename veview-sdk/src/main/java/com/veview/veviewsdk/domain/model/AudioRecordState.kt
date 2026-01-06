@@ -4,12 +4,32 @@ import java.io.File
 import kotlin.time.Duration
 import kotlin.time.Instant
 
+/**
+ * Represents the different states of the audio recording process.
+ * This sealed interface provides a restricted hierarchy for managing the recording state in a type-safe manner.
+ */
 sealed interface AudioRecordState {
+    /** The recorder is idle and not currently recording. */
     data object Idle : AudioRecordState
-    data object Starting : AudioRecordState // Init
-    data class Started(val audioFile: File, val start: Instant) :
-        AudioRecordState // Recording started
 
+    /** The recording is being initialized but has not yet started. */
+    data object Starting : AudioRecordState
+
+    /**
+     * The recording has successfully started.
+     *
+     * @param audioFile The file where the audio is being saved.
+     * @param start The timestamp when the recording began.
+     */
+    data class Started(val audioFile: File, val start: Instant) : AudioRecordState
+
+    /**
+     * A new chunk of audio data has been captured.
+     *
+     * @param audioFile The file where the audio is being saved.
+     * @param chunk The raw byte array of the latest audio data.
+     * @param durationSoFar The total duration of the recording up to this point.
+     */
     data class DataChunkReady(
         val audioFile: File,
         val chunk: ByteArray,
@@ -34,7 +54,24 @@ sealed interface AudioRecordState {
         }
     }
 
-    data class Stopped(val stop: Instant) : AudioRecordState // Recording stopped
-    data class Done(val audioFile: File) : AudioRecordState // Recording done
-    data class Error(val exception: Exception) : AudioRecordState // Error occurred
+    /**
+     * The recording has been stopped.
+     *
+     * @param stop The timestamp when the recording was stopped.
+     */
+    data class Stopped(val stop: Instant) : AudioRecordState
+
+    /**
+     * The recording is complete and the audio file is finalized.
+     *
+     * @param audioFile The final, saved audio file.
+     */
+    data class Done(val audioFile: File) : AudioRecordState
+
+    /**
+     * An error occurred during the recording process.
+     *
+     * @param exception The exception that was thrown.
+     */
+    data class Error(val exception: Exception) : AudioRecordState
 }
