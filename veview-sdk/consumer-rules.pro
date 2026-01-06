@@ -34,3 +34,21 @@
 # These are standard, safe rules to ensure Ktor's reflection-based features work correctly.
 -keep class io.ktor.client.engine.okhttp.** { *; }
 -dontwarn io.ktor.client.engine.okhttp.**
+
+# --- Keep Custom Annotations ---
+# Our SDK uses reflection to read these annotations at runtime.
+# This rule prevents R8 from removing them from the client's code.
+-keep @interface com.veview.veviewsdk.annotations.FieldDescription { *; }
+
+# --- Keep Client-Provided Data Classes ---
+# This is the most critical rule. Our ReflectionMapper needs to inspect the client's
+# custom data class (like MainReviewResponse) at runtime.
+# This rule ensures that the class, its constructor, and any fields annotated
+# with @FieldDescription are not removed or obfuscated away.
+-keepclassmembers,allowobfuscation class * {
+    @com.veview.veviewsdk.annotations.FieldDescription <fields>;
+}
+
+-keep,allowobfuscation @com.veview.veviewsdk.annotations.FieldDescription class * {
+    <init>(...);
+}

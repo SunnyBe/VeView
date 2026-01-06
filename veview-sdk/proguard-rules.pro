@@ -29,3 +29,21 @@
 -keep class com.veview.veviewsdk.presentation.VeViewSDK { *; }
 -keep class com.veview.veviewsdk.domain.reviewer.VoiceReviewer { *; }
 
+# --- Keep Moshi Reflective Adapter ---
+# Moshi's reflective adapter needs to see Kotlin's metadata to function.
+# This prevents R8 from stripping the metadata that moshi-kotlin-reflect relies on.
+-keep class kotlin.reflect.jvm.internal.** { *; }
+-keep class kotlin.Metadata { *; }
+
+# --- Keep the SDK's Internal Data Class ---
+# Protects our internal SdkAnalysisResponse from being obfuscated, ensuring
+# Moshi can find its fields and constructor at runtime.
+-keep,allowobfuscation class com.veview.veviewsdk.data.analysis.SdkAnalysisResponse {
+    public <init>(...);
+}
+-keepclassmembers,allowobfuscation class com.veview.veviewsdk.data.analysis.SdkAnalysisResponse {
+    <fields>;
+    <methods>;
+}
+
+
