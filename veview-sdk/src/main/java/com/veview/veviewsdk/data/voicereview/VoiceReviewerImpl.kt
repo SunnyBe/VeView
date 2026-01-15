@@ -1,4 +1,4 @@
-package com.veview.veviewsdk.domain.reviewer
+package com.veview.veviewsdk.data.voicereview
 
 import com.aallam.openai.client.OpenAI
 import com.squareup.moshi.Moshi
@@ -11,7 +11,7 @@ import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.domain.model.AudioRecordState
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.VoiceReviewError
-import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
+import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

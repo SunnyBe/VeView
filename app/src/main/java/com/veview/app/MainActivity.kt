@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     VoiceRecordingScreen(
                         state = uiState.voiceReviewState,
+                        instructionItems = uiState.instructionItems,
                         onEvent = viewModel::handleEvent
                     )
                 }

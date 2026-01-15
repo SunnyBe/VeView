@@ -15,9 +15,9 @@ import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.data.configs.LocalConfigProviderImpl
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
+import com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl
 import com.veview.veviewsdk.domain.model.VoiceReview
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
-import com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import timber.log.Timber

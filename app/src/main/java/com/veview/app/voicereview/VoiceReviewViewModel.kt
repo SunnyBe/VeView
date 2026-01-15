@@ -11,12 +11,12 @@ import com.veview.app.BuildConfig
 import com.veview.app.MainApplication
 import com.veview.app.R
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
+import com.veview.veviewsdk.data.voicereview.VoiceReviewState
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.SubjectType
 import com.veview.veviewsdk.domain.model.VoiceReviewError
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
 import com.veview.veviewsdk.presentation.VeViewSDK
-import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -42,6 +42,7 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
+            _uiState.update { it.copy(instructionItems = instructionItems()) }
             voiceReviewer.state.collect { state ->
                 val voiceReviewState = when (state) {
                     VoiceReviewState.Cancelled -> {
@@ -105,12 +106,35 @@ class MainViewModel(
 
     fun handleEvent(event: VoiceReviewEvent) {
         when (event) {
-            is VoiceReviewEvent.StartRecording -> { startReview(event.businessName) }
+            is VoiceReviewEvent.StartRecording -> {
+                startReview(event.businessName)
+            }
+
             VoiceReviewEvent.PauseRecording -> pauseReview()
             VoiceReviewEvent.CancelRecording -> cancelReview()
             VoiceReviewEvent.ConfirmCancel -> onExitRequested(ExitReason.USER_TRIGGER)
             VoiceReviewEvent.DoneRecording -> onReviewDone()
         }
+    }
+
+    private fun instructionItems(): List<ReviewInstructionItem> {
+        return listOf(
+            ReviewInstructionItem(
+                id = 0,
+                descriptionRes = R.string.recording_instruction_1,
+                detailRes = R.string.recording_instruction_detail_1
+            ),
+            ReviewInstructionItem(
+                id = 1,
+                descriptionRes = R.string.recording_instruction_2,
+                detailRes = R.string.recording_instruction_detail_2
+            ),
+            ReviewInstructionItem(
+                id = 2,
+                descriptionRes = R.string.recording_instruction_3,
+                detailRes = R.string.recording_instruction_detail_3
+            )
+        )
     }
 
     private fun startReview(businessName: String) {
@@ -143,7 +167,7 @@ class MainViewModel(
     }
 
     fun onPermissionDenied() {
-        Timber.tag(LOG_TAG).d("Permission denied.")
+        Timber.tag(LOG_TAG).d("Permission denied. Closing app via effect.")
         _uiState.update { it.copy(isPermissionEnabled = false) }
         viewModelScope.launch {
             _effects.emit(VoiceReviewEffect.CloseApplication(ExitReason.PERMISSION_DENIED))
@@ -195,5 +219,6 @@ class MainViewModel(
 @Immutable
 data class MainUiState(
     val isPermissionEnabled: Boolean = false,
+    val instructionItems: List<ReviewInstructionItem> = emptyList(),
     val voiceReviewState: VoiceReviewUiState = VoiceReviewUiState.VoiceReviewState()
 )

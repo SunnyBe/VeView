@@ -1,6 +1,7 @@
 package com.veview.app.voicereview
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.veview.app.R
 import com.veview.app.ui.component.AnimatedIllustration
-import com.veview.app.ui.component.CustomDialog
+import com.veview.app.ui.component.CustomAlertDialog
 import com.veview.app.ui.theme.VeViewTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +46,7 @@ import com.veview.app.ui.theme.VeViewTheme
 @Composable
 fun VoiceRecordingScreen(
     state: VoiceReviewUiState,
+    instructionItems: List<ReviewInstructionItem>,
     onEvent: (VoiceReviewEvent) -> Unit
 ) {
     var showConfirmationDialog by remember { mutableStateOf(false) }
@@ -52,7 +54,7 @@ fun VoiceRecordingScreen(
     BackHandler(enabled = !showConfirmationDialog) { showConfirmationDialog = true }
 
     if (showConfirmationDialog) {
-        CustomDialog(
+        CustomAlertDialog(
             title = stringResource(R.string.cancel_recording_title),
             description = stringResource(
                 if (state is VoiceReviewUiState.VoiceReviewState && state.recordingState.isRecording) {
@@ -80,7 +82,7 @@ fun VoiceRecordingScreen(
         val baseModifier = Modifier.padding(paddingValues)
         when (state) {
             is VoiceReviewUiState.Error -> {
-                CustomDialog(
+                CustomAlertDialog(
                     modifier = baseModifier,
                     title = "Review Failed",
                     description = stringResource(state.message),
@@ -108,6 +110,7 @@ fun VoiceRecordingScreen(
                 VoiceReviewerContent(
                     modifier = baseModifier,
                     ctaLabel = stringResource(R.string.record_label),
+                    reviewInstructionToDetail = instructionItems,
                     onStart = {
                         onEvent(
                             VoiceReviewEvent.StartRecording(context.getString(R.string.default_business_name))
@@ -116,7 +119,7 @@ fun VoiceRecordingScreen(
                 )
             }
 
-            is VoiceReviewUiState.ReviewNoted -> CustomDialog(
+            is VoiceReviewUiState.ReviewNoted -> CustomAlertDialog(
                 modifier = Modifier.padding(paddingValues),
                 title = stringResource(R.string.reveiw_sucess_title),
                 description = stringResource(R.string.review_completed_message, state.result),
@@ -134,6 +137,7 @@ fun VoiceRecordingScreen(
 @Composable
 fun VoiceReviewerContent(
     ctaLabel: String,
+    reviewInstructionToDetail: List<ReviewInstructionItem>,
     modifier: Modifier = Modifier,
     onStart: (() -> Unit)? = null
 ) {
@@ -151,9 +155,9 @@ fun VoiceReviewerContent(
                 .height(375.dp)
                 .padding(16.dp)
         )
-        InstructionItem(stringResource(R.string.recording_instruction_1))
-        InstructionItem(stringResource(R.string.recording_instruction_2))
-        InstructionItem(stringResource(R.string.recording_instruction_3))
+        reviewInstructionToDetail.forEach { instruction ->
+            InstructionItem(instruction)
+        }
         Spacer(modifier = Modifier.padding(vertical = 32.dp))
         Button(
             modifier = Modifier
@@ -168,7 +172,18 @@ fun VoiceReviewerContent(
 }
 
 @Composable
-fun InstructionItem(text: String, modifier: Modifier = Modifier) {
+private fun InstructionItem(
+    item: ReviewInstructionItem,
+    modifier: Modifier = Modifier
+) {
+    var showDetail by remember { mutableStateOf(false) }
+
+    if (showDetail) {
+        CustomDetailDialog(
+            description = stringResource(item.detailRes),
+            onDismiss = { showDetail = false }
+        )
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -180,14 +195,16 @@ fun InstructionItem(text: String, modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .size(16.dp)
+                .clickable(onClick = { showDetail = true })
                 .align(Alignment.CenterVertically)
         )
-        Text(text = text, fontSize = 12.sp)
+        Spacer(modifier = Modifier.padding(2.dp))
+        Text(text = stringResource(item.descriptionRes), fontSize = 12.sp)
     }
 }
 
 @Composable
-fun RecordingStatusDialog(
+private fun RecordingStatusDialog(
     status: String?,
     isSpeaking: Boolean,
     modifier: Modifier = Modifier,
@@ -253,6 +270,45 @@ fun RecordingStatusDialog(
     }
 }
 
+@Composable
+private fun CustomDetailDialog(
+    description: String,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = description,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Suppress("UnusedPrivateMember") // DNF: silent in config
+@Preview
+@Composable
+private fun CustomDetailDialogPreview() {
+    VeViewTheme {
+        CustomDetailDialog(
+            description = "This is a detailed description for the instruction item.",
+            onDismiss = {}
+        )
+    }
+}
+
 @Suppress("UnusedPrivateMember") // DNF: silent in config
 @Preview
 @Composable
@@ -274,6 +330,23 @@ private fun VoiceReviewerContentPreview() {
     VeViewTheme {
         VoiceReviewerContent(
             ctaLabel = "Record",
+            reviewInstructionToDetail = listOf(
+                ReviewInstructionItem(
+                    0,
+                    R.string.recording_instruction_1,
+                    R.string.recording_instruction_1
+                ),
+                ReviewInstructionItem(
+                    1,
+                    R.string.recording_instruction_2,
+                    R.string.recording_instruction_2
+                ),
+                ReviewInstructionItem(
+                    2,
+                    R.string.recording_instruction_3,
+                    R.string.recording_instruction_3
+                )
+            ),
             onStart = {}
         )
     }

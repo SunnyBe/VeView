@@ -33,4 +33,7 @@
     <string name="audio_capture_failure_message">We are having issues with recording your audio.</string>
     <string name="analysis_failure_message">Unable to analyse your review at this time. Try again later.</string>
     <string name="unknown_error_message">An unexpected issue has occurred. Try again or reach out to support.</string>
+    <string name="recording_instruction_detail_1">Tell us your experience using the service. Were you able to complete the usage of this service? Did the service bring you value or not?</string>
+    <string name="recording_instruction_detail_2">We would like to know how you rate this service. Tell us how much you love this service. Idealy should be 0 for the worst and 5 for the best service.</string>
+    <string name="recording_instruction_detail_3">Let us know if there are other things you would like us to improve on or other features you look forward to seeing.</string>
 </resources>

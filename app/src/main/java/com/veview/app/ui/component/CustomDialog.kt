@@ -27,7 +27,7 @@ import com.veview.app.ui.theme.VeViewTheme
 
 @Suppress("LongParameterList")
 @Composable
-fun CustomDialog(
+fun CustomAlertDialog(
     title: String,
     @RawRes illustration: Int,
     positiveButtonLabel: String,
@@ -97,9 +97,9 @@ fun CustomDialog(
 @Suppress("UnusedPrivateMember") // DNF: silent in config later
 @Preview
 @Composable
-private fun CustomDialogPreview() {
+private fun CustomAlertDialogPreview() {
     VeViewTheme {
-        CustomDialog(
+        CustomAlertDialog(
             title = "Error Title",
             description = "Error content goes here!",
             positiveButtonLabel = "Retry",

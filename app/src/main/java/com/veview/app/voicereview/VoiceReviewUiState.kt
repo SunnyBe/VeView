@@ -21,6 +21,7 @@ sealed interface VoiceReviewUiState {
 @Immutable
 data class RecordingState(
     @StringRes val status: Int? = null,
+    val instructionItems: List<ReviewInstructionItem> = emptyList(),
     val isRecording: Boolean = false,
     val isSpeaking: Boolean = false
 )

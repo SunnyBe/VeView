@@ -17,8 +17,8 @@
 
 # Keep the entire VoiceReviewState sealed class hierarchy. This is crucial for consumers
 # to be able to handle all possible states (Idle, Recording, Success, Error, etc.).
--keep class com.veview.veviewsdk.presentation.voicereview.VoiceReviewState { *; }
--keep class com.veview.veviewsdk.presentation.voicereview.VoiceReviewState$* { *; }
+-keep class com.veview.veviewsdk.data.voicereview.VoiceReviewState { *; }
+-keep class com.veview.veviewsdk.data.voicereview.VoiceReviewState$* { *; }
 
 # --- Configuration Models ---
 # The VoiceReviewConfig is parsed from JSON, which may use reflection.

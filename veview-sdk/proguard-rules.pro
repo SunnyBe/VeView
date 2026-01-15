@@ -8,7 +8,7 @@
 
 # --- Keep Class Under Test ---
 # The primary implementation class being tested.
--keep class com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl { *; }
+-keep class com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl { *; }
 
 # --- Keep Mocked Interfaces and Factories ---
 # These interfaces are mocked in tests to isolate the class under test from its dependencies.
