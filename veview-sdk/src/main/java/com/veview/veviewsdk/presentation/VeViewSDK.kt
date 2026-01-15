@@ -30,7 +30,6 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Use the [Builder] to construct a configured instance.
  */
-@Keep
 class VeViewSDK private constructor(
     private val apiKey: String,
     private val isDebug: Boolean = false
@@ -109,7 +108,11 @@ class VeViewSDK private constructor(
     }
 
     private fun initTooling() {
-        if (isDebug) Timber.plant(Timber.DebugTree()) else Timber.plant()
+        if (isDebug && Timber.forest().isEmpty()) {
+            Timber.plant(Timber.DebugTree())
+        } else if (Timber.forest().isEmpty()) {
+            Timber.plant()
+        }
     }
 
     /**

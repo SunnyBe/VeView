@@ -1,7 +1,5 @@
 package com.veview.veviewsdk.domain.reviewer
 
-import android.Manifest
-import androidx.annotation.RequiresPermission
 import com.aallam.openai.client.OpenAI
 import com.squareup.moshi.Moshi
 import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
@@ -46,7 +44,6 @@ internal class VoiceReviewerImpl<T> internal constructor(
         get() = _state.asStateFlow()
 
     @Suppress("TooGenericExceptionCaught")
-    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun start(reviewContext: ReviewContext) {
         if (sessionJob?.isActive == true) {
             // Active session is running. TODO Record Non-fatal

@@ -25,19 +25,23 @@ import androidx.compose.ui.window.Dialog
 import com.veview.app.R
 import com.veview.app.ui.theme.VeViewTheme
 
+@Suppress("LongParameterList")
 @Composable
 fun CustomDialog(
     title: String,
     @RawRes illustration: Int,
-    onDismiss: () -> Unit,
-    content: String? = null,
-    onRetry: (() -> Unit)? = null
+    positiveButtonLabel: String,
+    negativeButtonLabel: String,
+    onNegative: () -> Unit,
+    modifier: Modifier = Modifier,
+    description: String? = null,
+    onPositive: (() -> Unit)? = null
 ) {
     Dialog(
-        onDismissRequest = onDismiss
+        onDismissRequest = onNegative
     ) {
         Card(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .height(375.dp)
                 .padding(16.dp),
@@ -60,9 +64,9 @@ fun CustomDialog(
                     illustration = illustration
                 )
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
-                content?.let {
+                description?.let {
                     Text(
-                        text = content,
+                        text = description,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
@@ -72,17 +76,17 @@ fun CustomDialog(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     TextButton(
-                        enabled = onRetry != null,
-                        onClick = { onRetry?.invoke() },
+                        enabled = onPositive != null,
+                        onClick = { onPositive?.invoke() },
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text("Retry")
+                        Text(positiveButtonLabel)
                     }
                     TextButton(
-                        onClick = onDismiss,
+                        onClick = onNegative,
                         modifier = Modifier.padding(8.dp)
                     ) {
-                        Text("Dismiss")
+                        Text(negativeButtonLabel)
                     }
                 }
             }
@@ -97,9 +101,11 @@ private fun CustomDialogPreview() {
     VeViewTheme {
         CustomDialog(
             title = "Error Title",
-            content = "Error content goes here!",
-            onRetry = {},
-            onDismiss = {},
+            description = "Error content goes here!",
+            positiveButtonLabel = "Retry",
+            negativeButtonLabel = "Dismiss",
+            onPositive = {},
+            onNegative = {},
             illustration = R.raw.animator_success
         )
     }

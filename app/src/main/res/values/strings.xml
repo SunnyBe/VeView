@@ -1,3 +1,36 @@
 <resources>
     <string name="app_name">VeView</string>
+    <string name="permission_dialog_title">Permission needed</string>
+    <string name="permission_dialog_message">VeView needs access to your device microphone to function properly. Without this permission, this feature is unusable.</string>
+    <string name="permission_grant_button">Grant Permission</string>
+    <string name="permission_deny_button">Deny</string>
+    <string name="welcome_message">Welcome to VeView!</string>
+    <string name="exit_confirmation">Are you sure you want to exit?</string>
+    <string name="permission_dialog_accept">Accept</string>
+    <string name="permission_dialog_dismiss">Reject</string>
+    <string name="retry_label">Retry</string>
+    <string name="dismiss_label">Dismiss</string>
+    <string name="no_label">No</string>
+    <string name="yes_label">Yes</string>
+    <string name="confirmation_ongoing_recording_content">Are you sure you want to cancel and exit the ongoing voice review?</string>
+    <string name="confirmation_exit_review">Are you sure you want to exit the voice review?</string>
+    <string name="record_label">Record</string>
+    <string name="cancel_recording_title">Cancel Recording</string>
+    <string name="review_completed_message">A VoiceReview object is ready. Summary: %1$s</string>
+    <string name="reveiw_sucess_title">Success</string>
+    <string name="default_business_name">Unspecified</string>
+    <string name="recording_instruction_1">Tell us what you think about this service.</string>
+    <string name="recording_instruction_2">Mention the rating you would give us.</string>
+    <string name="recording_instruction_3">Other things you might want to say.</string>
+    <string name="initializing_label">Initializing</string>
+    <string name="recording_label">Recording</string>
+    <string name="processing_label">Processing</string>
+    <string name="recording_cancelled_label">Cancelled</string>
+    <string name="permission_denied_dialog_message">You must accept this permission otherwise, you cannot use the app. Select permissions and enable the audio permission to use the app.</string>
+    <string name="settings_label">Settings</string>
+    <string name="detail_label">etail</string>
+    <string name="exit_label">Exit</string>
+    <string name="audio_capture_failure_message">We are having issues with recording your audio.</string>
+    <string name="analysis_failure_message">Unable to analyse your review at this time. Try again later.</string>
+    <string name="unknown_error_message">An unexpected issue has occurred. Try again or reach out to support.</string>
 </resources>
