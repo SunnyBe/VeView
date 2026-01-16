@@ -6,16 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,14 +32,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewDynamicColors
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.veview.app.R
 import com.veview.app.ui.component.AnimatedIllustration
 import com.veview.app.ui.component.CustomAlertDialog
@@ -45,6 +51,7 @@ import com.veview.app.ui.theme.VeViewTheme
 @Suppress("ModifierMissing")
 @Composable
 fun VoiceRecordingScreen(
+    businessName: String,
     state: VoiceReviewUiState,
     instructionItems: List<ReviewInstructionItem>,
     onEvent: (VoiceReviewEvent) -> Unit
@@ -78,7 +85,6 @@ fun VoiceRecordingScreen(
             TopAppBar(title = { Text(stringResource(R.string.app_name)) })
         }
     ) { paddingValues ->
-        val context = LocalContext.current
         val baseModifier = Modifier.padding(paddingValues)
         when (state) {
             is VoiceReviewUiState.Error -> {
@@ -113,7 +119,7 @@ fun VoiceRecordingScreen(
                     reviewInstructionToDetail = instructionItems,
                     onStart = {
                         onEvent(
-                            VoiceReviewEvent.StartRecording(context.getString(R.string.default_business_name))
+                            VoiceReviewEvent.StartRecording(businessName)
                         )
                     }
                 )
@@ -144,6 +150,7 @@ fun VoiceReviewerContent(
     Column(
         modifier = modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -152,9 +159,10 @@ fun VoiceReviewerContent(
             illustration = R.raw.animation_user_review,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(375.dp)
+                .aspectRatio(1f)
                 .padding(16.dp)
         )
+
         reviewInstructionToDetail.forEach { instruction ->
             InstructionItem(instruction)
         }
@@ -186,20 +194,26 @@ private fun InstructionItem(
     }
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.rounded_help_24),
-            contentDescription = stringResource(R.string.detail_label),
-            tint = MaterialTheme.colorScheme.primary,
+            painter = painterResource(R.drawable.outline_arrow_circle_right_24),
+            contentDescription = stringResource(R.string.instruction_label),
+            tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
-                .size(16.dp)
-                .clickable(onClick = { showDetail = true })
-                .align(Alignment.CenterVertically)
+                .size(24.dp)
         )
-        Spacer(modifier = Modifier.padding(2.dp))
-        Text(text = stringResource(item.descriptionRes), fontSize = 12.sp)
+        Text(text = stringResource(item.descriptionRes))
+        Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+        IconButton(onClick = { showDetail = true }, modifier = Modifier.size(24.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.rounded_info_24),
+                contentDescription = stringResource(R.string.detail_label),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -212,18 +226,22 @@ private fun RecordingStatusDialog(
     onCancel: (() -> Unit)? = null
 ) {
     Dialog(
-        onDismissRequest = { onCancel?.invoke() }
+        onDismissRequest = { onCancel?.invoke() },
+        properties = DialogProperties(
+            dismissOnClickOutside = false,
+        )
     ) {
         Card(
             modifier = modifier
                 .fillMaxWidth()
-                .height(375.dp)
                 .padding(8.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .verticalScroll(rememberScrollState())
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -236,7 +254,9 @@ private fun RecordingStatusDialog(
                 )
                 Spacer(modifier = Modifier.padding(vertical = 16.dp))
                 AnimatedIllustration(
-                    modifier = Modifier.size(120.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .aspectRatio(1f),
                     illustration = R.raw.recording_animation,
                     isPlaying = isSpeaking
                 )
@@ -324,7 +344,8 @@ private fun RecordingStatusDialogPreview() {
 }
 
 @Suppress("UnusedPrivateMember") // DNF: silent in config
-@Preview(showBackground = true)
+@PreviewScreenSizes
+@PreviewDynamicColors
 @Composable
 private fun VoiceReviewerContentPreview() {
     VeViewTheme {

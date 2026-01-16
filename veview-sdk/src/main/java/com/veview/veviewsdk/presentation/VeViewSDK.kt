@@ -108,10 +108,8 @@ class VeViewSDK private constructor(
     }
 
     private fun initTooling() {
-        if (isDebug && Timber.forest().isEmpty()) {
-            Timber.plant(Timber.DebugTree())
-        } else if (Timber.forest().isEmpty()) {
-            Timber.plant()
+        if (Timber.forest().isEmpty()) {
+            if (isDebug) Timber.plant(Timber.DebugTree()) else Timber.plant()
         }
     }
 

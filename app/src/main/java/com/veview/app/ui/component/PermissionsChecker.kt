@@ -110,7 +110,7 @@ private fun Activity.shouldShowRationale(): Boolean {
     )
 }
 
-private fun Context.isPermissionEnabled(): Boolean {
+fun Context.isPermissionEnabled(): Boolean {
     return ContextCompat.checkSelfPermission(
         this,
         Manifest.permission.RECORD_AUDIO

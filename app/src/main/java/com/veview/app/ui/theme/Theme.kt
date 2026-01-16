@@ -53,17 +53,6 @@ fun VeViewTheme(
         else -> LightColorScheme
     }
 
-    val view = LocalView.current
-    if (view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as androidx.activity.ComponentActivity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
-        }
-    }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,

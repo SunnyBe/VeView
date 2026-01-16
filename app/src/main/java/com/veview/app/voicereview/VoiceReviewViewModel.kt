@@ -42,7 +42,7 @@ class MainViewModel(
 
     init {
         viewModelScope.launch {
-            _uiState.update { it.copy(instructionItems = instructionItems()) }
+            _uiState.update { it.copy(instructionItems = instructionItems(), businessName = getBusinessName()) }
             voiceReviewer.state.collect { state ->
                 val voiceReviewState = when (state) {
                     VoiceReviewState.Cancelled -> {
@@ -136,6 +136,10 @@ class MainViewModel(
             )
         )
     }
+    private fun getBusinessName(): String {
+        // In a real app, this might come from a repository or other data source
+        return "Cafe Delight"
+    }
 
     private fun startReview(businessName: String) {
         val reviewContext = ReviewContext(
@@ -163,12 +167,12 @@ class MainViewModel(
 
     fun onPermissionGranted() {
         Timber.tag(LOG_TAG).d("Permission granted.")
-        _uiState.update { it.copy(isPermissionEnabled = true) }
+        _uiState.update { it.copy(hasAudioPermission = true) }
     }
 
     fun onPermissionDenied() {
         Timber.tag(LOG_TAG).d("Permission denied. Closing app via effect.")
-        _uiState.update { it.copy(isPermissionEnabled = false) }
+        _uiState.update { it.copy(hasAudioPermission = false) }
         viewModelScope.launch {
             _effects.emit(VoiceReviewEffect.CloseApplication(ExitReason.PERMISSION_DENIED))
         }
@@ -218,7 +222,8 @@ class MainViewModel(
 
 @Immutable
 data class MainUiState(
-    val isPermissionEnabled: Boolean = false,
+    val businessName: String? = null,
+    val hasAudioPermission: Boolean = false,
     val instructionItems: List<ReviewInstructionItem> = emptyList(),
     val voiceReviewState: VoiceReviewUiState = VoiceReviewUiState.VoiceReviewState()
 )
