@@ -22,14 +22,14 @@ fun AnimatedIllustration(
     )
 
     val preloaderProgress by animateLottieCompositionAsState(
-        preloaderLottieComposition,
+        composition = preloaderLottieComposition,
         iterations = LottieConstants.IterateForever,
         isPlaying = isPlaying
     )
 
     LottieAnimation(
         composition = preloaderLottieComposition,
-        progress = preloaderProgress,
+        progress = { preloaderProgress },
         modifier = modifier
     )
 }

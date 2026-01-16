@@ -44,7 +44,6 @@ internal class LocalConfigProviderImpl(
                 .build()
         }
 
-    // TODO complete this for all voice review configs
     override suspend fun setConfig(voiceReviewConfig: VoiceReviewConfig) {
         context.dataStore.updateData { preferences ->
             preferences.toMutablePreferences().also { preference ->

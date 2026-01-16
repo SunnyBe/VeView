@@ -74,7 +74,7 @@ data class VoiceReviewConfig(
         private const val DEFAULT_AUDIO_SOURCE = MediaRecorder.AudioSource.MIC
         private const val DEFAULT_SAMPLE_RATE = 16000
         private const val DEFAULT_CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
-        private const val DEFAULT_BITS_PER_SAMPLE = 16 // 16 for ENCODING_PCM_16BIT
+        private const val DEFAULT_BITS_PER_SAMPLE = 16 // 16-bits for ENCODING_PCM_16BIT
         private const val DEFAULT_NUM_CHANNELS = 1 // for CHANNEL_IN_MONO
     }
 }

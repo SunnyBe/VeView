@@ -60,12 +60,13 @@ internal class AndroidAudioCaptureProvider(
 
         val outputFile = generateOutputFile(config, fileName)
 
+        // Minimum buffer size to avoid buffer underruns on this device
         val minBufferSize = AudioRecord.getMinBufferSize(
             config.sampleRate,
             config.channelConfig,
             config.audioFormat
         )
-        val bufferSize = minBufferSize * 2
+        val bufferSize = minBufferSize * 2 // Use double the minimum buffer size for safety
         check(bufferSize > 0) { "Invalid buffer size calculated: $bufferSize" }
 
         audioRecord = createAudioRecordInstance(config, bufferSize)

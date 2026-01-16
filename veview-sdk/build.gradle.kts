@@ -14,7 +14,7 @@ android {
     }
     defaultConfig {
         minSdk = 24
-        version = "1.0.2"
+        version = "1.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -92,7 +92,7 @@ dependencies {
     implementation("com.squareup.moshi:moshi-kotlin:1.15.1")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.1")
 
-    implementation("androidx.annotation:annotation:1.9.1")
+    api("androidx.annotation:annotation:1.9.1")
 
     implementation(libs.openai.client)
     implementation(libs.ktor.client.okhttp)

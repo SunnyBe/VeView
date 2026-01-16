@@ -15,12 +15,11 @@ import com.veview.veviewsdk.data.audiocapture.AndroidAudioCaptureProvider
 import com.veview.veviewsdk.data.configs.LocalConfigProviderImpl
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
+import com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl
 import com.veview.veviewsdk.domain.model.VoiceReview
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
-import com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import okhttp3.OkHttpClient
 import timber.log.Timber
 import kotlin.time.Duration.Companion.seconds
 
@@ -31,10 +30,8 @@ import kotlin.time.Duration.Companion.seconds
  *
  * Use the [Builder] to construct a configured instance.
  */
-@Keep
 class VeViewSDK private constructor(
     private val apiKey: String,
-    private val okHttpClient: OkHttpClient,
     private val isDebug: Boolean = false
 ) {
 
@@ -111,7 +108,9 @@ class VeViewSDK private constructor(
     }
 
     private fun initTooling() {
-        if (isDebug) Timber.plant(Timber.DebugTree()) else Timber.plant()
+        if (Timber.forest().isEmpty()) {
+            if (isDebug) Timber.plant(Timber.DebugTree()) else Timber.plant()
+        }
     }
 
     /**
@@ -123,17 +122,6 @@ class VeViewSDK private constructor(
     @Keep
     class Builder(private val apiKey: String, private val isDebug: Boolean = false) {
 
-        private var okHttpClient: OkHttpClient? = null
-
-        /**
-         * Sets a custom [OkHttpClient] for the SDK to use for all network requests.
-         *
-         * @param client The OkHttpClient instance.
-         */
-        fun setOkHttpClient(client: OkHttpClient) = apply {
-            this.okHttpClient = client
-        }
-
         /**
          * Builds and returns a configured [VeViewSDK] instance.
          *
@@ -141,11 +129,9 @@ class VeViewSDK private constructor(
          */
         fun build(): VeViewSDK {
             check(apiKey.isNotBlank()) { "API key cannot be blank." }
-            val finalOkHttpClient = this.okHttpClient ?: OkHttpClient()
 
             return VeViewSDK(
                 apiKey = apiKey,
-                okHttpClient = finalOkHttpClient,
                 isDebug = isDebug
             )
         }
@@ -180,9 +166,12 @@ class VeViewSDK private constructor(
          * @return The configured [VeViewSDK] instance.
          * @throws IllegalStateException if [init] has not been called first.
          */
+        @JvmStatic
         fun getInstance(): VeViewSDK {
-            check(instance != null) { "VeViewSDK.getInstance() called before VeViewSDK.init()." }
-            return instance!!
+            return instance ?: synchronized(this) {
+                instance
+                    ?: error("VeViewSDK.getInstance() called before VeViewSDK.init().")
+            }
         }
     }
 }

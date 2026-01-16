@@ -1,7 +1,7 @@
 package com.veview.veviewsdk.domain.reviewer
 
+import com.veview.veviewsdk.data.voicereview.VoiceReviewState
 import com.veview.veviewsdk.domain.model.ReviewContext
-import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import kotlinx.coroutines.flow.StateFlow
 
 /**

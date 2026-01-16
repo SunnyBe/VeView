@@ -1,4 +1,4 @@
-package com.veview.veviewsdk.presentation.voicereview
+package com.veview.veviewsdk.data.voicereview
 
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.VoiceReviewError

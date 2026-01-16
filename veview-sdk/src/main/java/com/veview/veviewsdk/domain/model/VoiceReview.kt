@@ -1,10 +1,14 @@
 package com.veview.veviewsdk.domain.model
 
+import com.squareup.moshi.JsonClass
 import java.io.File
 
 /**
  * Represents the structured data extracted from a successfully processed voice review.
- * All properties are immutable (`val`) to ensure thread safety and predictability. [7, 11]
+ * All properties are immutable (`val`) to ensure thread safety and predictability.
+ *
+ * This class is annotated with [JsonClass] to enable Moshi's codegen, which avoids
+ * runtime reflection and makes it compatible with ProGuard.
  *
  * @param transcript The raw text transcribed from the user's audio.
  * @param summary A concise summary of the review.
@@ -13,6 +17,7 @@ import java.io.File
  * @param cons A list of negative points mentioned in the review.
  * @param audioFile The local file containing the recorded audio.
  */
+@JsonClass(generateAdapter = true)
 data class VoiceReview(
     val transcript: String,
     val summary: String,
