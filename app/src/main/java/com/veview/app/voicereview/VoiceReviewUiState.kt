@@ -6,7 +6,7 @@ import androidx.compose.runtime.Immutable
 @Immutable
 sealed interface VoiceReviewUiState {
     @Immutable
-    data class Error(@StringRes val message: Int) : VoiceReviewUiState
+    data class Error(@param:StringRes val message: Int) : VoiceReviewUiState
 
     @Immutable
     data class VoiceReviewState(
@@ -20,7 +20,7 @@ sealed interface VoiceReviewUiState {
 
 @Immutable
 data class RecordingState(
-    @StringRes val status: Int? = null,
+    @param:StringRes val status: Int? = null,
     val instructionItems: List<ReviewInstructionItem> = emptyList(),
     val isRecording: Boolean = false,
     val isSpeaking: Boolean = false
