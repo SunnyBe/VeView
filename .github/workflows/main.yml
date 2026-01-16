@@ -29,5 +29,8 @@ jobs:
     - name: Run detekt
       run: ./gradlew detekt
 
+    - name: Run unit tests
+      run: ./gradlew :veview-sdk:testDebugUnitTest
+
     - name: Build release APK
       run: ./gradlew assembleRelease
