@@ -9,9 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.veview.app.ui.component.PermissionsChecker
-import com.veview.app.ui.component.isPermissionEnabled
 import com.veview.app.ui.theme.VeViewTheme
-import com.veview.app.voicereview.MainViewModel
 import com.veview.app.voicereview.VoiceRecordingScreen
 import com.veview.app.voicereview.VoiceReviewEffect
 import kotlinx.coroutines.flow.onEach
@@ -28,7 +26,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             VeViewTheme {
-
                 LaunchedEffect(Unit) {
                     viewModel.effects
                         .onEach { effect -> Timber.tag(LOG_TAG).d("Received effect: [$effect]") }

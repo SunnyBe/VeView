@@ -1,4 +1,4 @@
-package com.veview.app.voicereview
+package com.veview.app
 
 import android.media.AudioFormat
 import androidx.compose.runtime.Immutable
@@ -7,9 +7,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.veview.app.BuildConfig
-import com.veview.app.MainApplication
-import com.veview.app.R
+import com.veview.app.voicereview.ExitReason
+import com.veview.app.voicereview.MainReviewResponse
+import com.veview.app.voicereview.RecordingState
+import com.veview.app.voicereview.ReviewInstructionItem
+import com.veview.app.voicereview.VoiceReviewEffect
+import com.veview.app.voicereview.VoiceReviewEvent
+import com.veview.app.voicereview.VoiceReviewUiState
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
 import com.veview.veviewsdk.data.voicereview.VoiceReviewState
 import com.veview.veviewsdk.domain.model.ReviewContext
@@ -136,6 +140,8 @@ class MainViewModel(
             )
         )
     }
+
+    @Suppress("FunctionOnlyReturningConstant")
     private fun getBusinessName(): String {
         // In a real app, this might come from a repository or other data source
         return "Cafe Delight"

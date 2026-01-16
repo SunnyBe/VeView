@@ -166,9 +166,12 @@ class VeViewSDK private constructor(
          * @return The configured [VeViewSDK] instance.
          * @throws IllegalStateException if [init] has not been called first.
          */
+        @JvmStatic
         fun getInstance(): VeViewSDK {
-            check(instance != null) { "VeViewSDK.getInstance() called before VeViewSDK.init()." }
-            return instance!!
+            return instance ?: synchronized(this) {
+                instance
+                    ?: error("VeViewSDK.getInstance() called before VeViewSDK.init().")
+            }
         }
     }
 }
