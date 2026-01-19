@@ -18,6 +18,7 @@ import com.veview.veviewsdk.data.coroutine.DefaultDispatcherProvider
 import com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl
 import com.veview.veviewsdk.domain.model.VoiceReview
 import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
+import com.veview.veviewsdk.presentation.VeViewSDK.Companion.init
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import timber.log.Timber
@@ -139,7 +140,9 @@ class VeViewSDK private constructor(
 
     companion object {
         private const val LOG_TAG = "VeViewSDK"
+        @Volatile
         private var instance: VeViewSDK? = null
+        private val veviewLock = Any()
 
         /**
          * Initializes the SDK with a default configuration and sets it as a global singleton.
@@ -154,10 +157,13 @@ class VeViewSDK private constructor(
          */
         @MainThread
         fun init(apiKey: String, isDebug: Boolean = false) {
-            check(instance == null) {
-                "VeViewSDK.init() has already been called. For a new instance, use the Builder."
+            if (instance == null) {
+                synchronized(veviewLock) {
+                    if (instance == null) {
+                        instance = Builder(apiKey, isDebug = isDebug).build()
+                    }
+                }
             }
-            instance = Builder(apiKey, isDebug = isDebug).build()
         }
 
         /**

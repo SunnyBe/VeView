@@ -181,7 +181,6 @@ class VoiceReviewerImplTest {
             emit(AudioRecordState.DataChunkReady(fakeAudioFile, byteArrayOf(1, 2, 3), 5.seconds))
             // No Done state to simulate ongoing recording
             delay(1.seconds)
-//            emit(AudioRecordState.Done(fakeAudioFile))
         }
 
         // Act
