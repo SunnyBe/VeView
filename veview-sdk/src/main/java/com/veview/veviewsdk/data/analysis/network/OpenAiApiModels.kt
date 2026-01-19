@@ -7,37 +7,37 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class WhisperTranscriptionResponse(
-    @Json(name = "text") val text: String
+    @field:Json(name = "text") val text: String
 )
 
 // --- Data classes for GPT Chat Completion ---
 
 @JsonClass(generateAdapter = true)
 data class GptChatRequest(
-    @Json(name = "model") val model: String,
-    @Json(name = "messages") val messages: List<GptMessage>
+    @field:Json(name = "model") val model: String,
+    @field:Json(name = "messages") val messages: List<GptMessage>
 )
 
 @JsonClass(generateAdapter = true)
 data class GptMessage(
-    @Json(name = "role") val role: String,
-    @Json(name = "content") val content: String
+    @field:Json(name = "role") val role: String,
+    @field:Json(name = "content") val content: String
 )
 
 @JsonClass(generateAdapter = true)
 data class GptChatResponse(
-    @Json(name = "choices") val choices: List<GptChoice>
+    @field:Json(name = "choices") val choices: List<GptChoice>
 )
 
 @JsonClass(generateAdapter = true)
 data class GptChoice(
-    @Json(name = "message") val message: GptMessage
+    @field:Json(name = "message") val message: GptMessage
 )
 
 @JsonClass(generateAdapter = true)
 data class GptAnalysisResponse(
-    @Json(name = "summary") val summary: String = "",
-    @Json(name = "rating") val rating: Int = 1,
-    @Json(name = "pros") val pros: List<String> = emptyList(),
-    @Json(name = "cons") val cons: List<String> = emptyList()
+    @field:Json(name = "summary") val summary: String = "",
+    @field:Json(name = "rating") val rating: Int = 1,
+    @field:Json(name = "pros") val pros: List<String> = emptyList(),
+    @field:Json(name = "cons") val cons: List<String> = emptyList()
 )

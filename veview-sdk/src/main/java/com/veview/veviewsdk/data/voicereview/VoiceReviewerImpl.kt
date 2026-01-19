@@ -1,7 +1,5 @@
-package com.veview.veviewsdk.domain.reviewer
+package com.veview.veviewsdk.data.voicereview
 
-import android.Manifest
-import androidx.annotation.RequiresPermission
 import com.aallam.openai.client.OpenAI
 import com.squareup.moshi.Moshi
 import com.veview.veviewsdk.data.analysis.OpenAIAnalysisEngine
@@ -13,7 +11,7 @@ import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.domain.model.AudioRecordState
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.VoiceReviewError
-import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
+import com.veview.veviewsdk.domain.reviewer.VoiceReviewer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -46,7 +44,6 @@ internal class VoiceReviewerImpl<T> internal constructor(
         get() = _state.asStateFlow()
 
     @Suppress("TooGenericExceptionCaught")
-    @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun start(reviewContext: ReviewContext) {
         if (sessionJob?.isActive == true) {
             // Active session is running. TODO Record Non-fatal
