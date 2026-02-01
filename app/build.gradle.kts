@@ -28,7 +28,6 @@ android {
 
     buildTypes {
         release {
-            isDebuggable = true
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -56,8 +55,8 @@ android {
 }
 
 dependencies {
-//    implementation(project(":veview-sdk"))
-    implementation(libs.veview)
+    implementation(project(":veview-sdk"))
+//    implementation(libs.veview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -66,7 +65,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation("com.airbnb.android:lottie-compose:4.0.0")
+    implementation(libs.lottie.compose)
+
+    implementation(libs.timber)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

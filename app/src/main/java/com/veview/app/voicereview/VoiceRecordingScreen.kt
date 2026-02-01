@@ -1,73 +1,139 @@
 package com.veview.app.voicereview
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewDynamicColors
+import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.veview.app.R
 import com.veview.app.ui.component.AnimatedIllustration
-import com.veview.app.ui.component.CustomDialog
+import com.veview.app.ui.component.CustomAlertDialog
 import com.veview.app.ui.theme.VeViewTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Suppress("ModifierMissing")
 @Composable
 fun VoiceRecordingScreen(
-    state: MainUiState,
-    onStart: (() -> Unit)?,
-    onPause: (() -> Unit)?,
-    onCancel: (() -> Unit)?,
-    onDone: (() -> Unit)?
+    businessName: String,
+    state: VoiceReviewUiState,
+    instructionItems: List<ReviewInstructionItem>,
+    onEvent: (VoiceReviewEvent) -> Unit
 ) {
-    when (state) {
-        is MainUiState.Error -> CustomDialog(
-            title = "Review Failed",
-            content = state.message,
-            onRetry = null,
-            onDismiss = { onCancel?.invoke() },
+    var showConfirmationDialog by remember { mutableStateOf(false) }
+
+    BackHandler(enabled = !showConfirmationDialog) { showConfirmationDialog = true }
+
+    if (showConfirmationDialog) {
+        CustomAlertDialog(
+            title = stringResource(R.string.cancel_recording_title),
+            description = stringResource(
+                if (state is VoiceReviewUiState.VoiceReviewState && state.recordingState.isRecording) {
+                    R.string.confirmation_ongoing_recording_content
+                } else {
+                    R.string.confirmation_exit_review
+                }
+            ),
+            positiveButtonLabel = stringResource(R.string.yes_label),
+            negativeButtonLabel = stringResource(R.string.no_label),
+            onPositive = {
+                showConfirmationDialog = false
+                onEvent(VoiceReviewEvent.ConfirmCancel)
+            },
+            onNegative = { showConfirmationDialog = false },
             illustration = R.raw.animatior_unkown_error
         )
+    }
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text(stringResource(R.string.app_name)) })
+        }
+    ) { paddingValues ->
+        val baseModifier = Modifier.padding(paddingValues)
+        when (state) {
+            is VoiceReviewUiState.Error -> {
+                CustomAlertDialog(
+                    modifier = baseModifier,
+                    title = "Review Failed",
+                    description = stringResource(state.message),
+                    positiveButtonLabel = stringResource(R.string.retry_label),
+                    negativeButtonLabel = stringResource(R.string.dismiss_label),
+                    onPositive = null,
+                    onNegative = { onEvent(VoiceReviewEvent.CancelRecording) },
+                    illustration = R.raw.animatior_unkown_error
+                )
+            }
 
-        is MainUiState.Recording -> RecordingStatusDialog(
-            status = state.status,
-            isRecording = state.isRecording,
-            onDone = onPause,
-            onCancel = onCancel
-        )
+            is VoiceReviewUiState.VoiceReviewState -> {
+                if (state.recordingState.isRecording) {
+                    RecordingStatusDialog(
+                        modifier = baseModifier,
+                        status = stringResource(
+                            state.recordingState.status ?: R.string.recording_label
+                        ),
+                        isSpeaking = state.recordingState.isSpeaking,
+                        onDone = { onEvent(VoiceReviewEvent.PauseRecording) },
+                        onCancel = { onEvent(VoiceReviewEvent.CancelRecording) }
+                    )
+                }
 
-        is MainUiState.ReadyToRecord -> VoiceReviewerContent(
-            ctaLabel = "Record",
-            onStart = { onStart?.invoke() }
-        )
+                VoiceReviewerContent(
+                    modifier = baseModifier,
+                    ctaLabel = stringResource(R.string.record_label),
+                    reviewInstructionToDetail = instructionItems,
+                    onStart = {
+                        onEvent(
+                            VoiceReviewEvent.StartRecording(businessName)
+                        )
+                    }
+                )
+            }
 
-        is MainUiState.ReviewNoted -> CustomDialog(
-            title = "Success",
-            content = "A VoiceReview object is ready. Summary: ${state.result}",
-            onRetry = null,
-            onDismiss = { onDone?.invoke() },
-            illustration = R.raw.animator_success
-        )
+            is VoiceReviewUiState.ReviewNoted -> CustomAlertDialog(
+                modifier = Modifier.padding(paddingValues),
+                title = stringResource(R.string.reveiw_sucess_title),
+                description = stringResource(R.string.review_completed_message, state.result),
+                positiveButtonLabel = stringResource(R.string.retry_label),
+                negativeButtonLabel = stringResource(R.string.dismiss_label),
+                onPositive = null,
+                onNegative = { onEvent(VoiceReviewEvent.DoneRecording) },
+                illustration = R.raw.animator_success
+            )
+        }
     }
 }
 
@@ -75,86 +141,107 @@ fun VoiceRecordingScreen(
 @Composable
 fun VoiceReviewerContent(
     ctaLabel: String,
+    reviewInstructionToDetail: List<ReviewInstructionItem>,
     modifier: Modifier = Modifier,
     onStart: (() -> Unit)? = null
 ) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            TopAppBar(title = { Text("VeView Reviewer") })
-        }
-    ) { paddingValues ->
-        Column(
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        AnimatedIllustration(
+            illustration = R.raw.animation_user_review,
             modifier = Modifier
-                .padding(paddingValues)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .padding(16.dp)
+        )
+
+        reviewInstructionToDetail.forEach { instruction ->
+            InstructionItem(instruction)
+        }
+        Spacer(modifier = Modifier.padding(vertical = 32.dp))
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            enabled = onStart != null,
+            onClick = { onStart?.invoke() }
         ) {
-            AnimatedIllustration(
-                illustration = R.raw.animation_user_review,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(375.dp)
-                    .padding(16.dp)
-            )
-            Text(
-                text = "* Tell us what you think about this service.",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-            Text(
-                text = "* Mention the rating you would give us.",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-            Text(
-                text = "* Other things you might want to say.",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.padding(vertical = 32.dp))
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                colors = ButtonColors(
-                    containerColor = Color.Red,
-                    contentColor = Color.White,
-                    disabledContainerColor = Color.Gray,
-                    disabledContentColor = Color.LightGray
-                ),
-                enabled = onStart != null,
-                onClick = { onStart?.invoke() }
-            ) {
-                Text(ctaLabel)
-            }
+            Text(ctaLabel)
         }
     }
 }
 
 @Composable
-fun RecordingStatusDialog(
+private fun InstructionItem(
+    item: ReviewInstructionItem,
+    modifier: Modifier = Modifier
+) {
+    var showDetail by remember { mutableStateOf(false) }
+
+    if (showDetail) {
+        CustomDetailDialog(
+            description = stringResource(item.detailRes),
+            onDismiss = { showDetail = false }
+        )
+    }
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.outline_arrow_circle_right_24),
+            contentDescription = stringResource(R.string.instruction_label),
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier
+                .size(24.dp)
+        )
+        Text(text = stringResource(item.descriptionRes))
+        Spacer(modifier = Modifier.padding(horizontal = 2.dp))
+        IconButton(onClick = { showDetail = true }, modifier = Modifier.size(24.dp)) {
+            Icon(
+                painter = painterResource(R.drawable.rounded_info_24),
+                contentDescription = stringResource(R.string.detail_label),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Suppress("MagicNumber")
+@Composable
+private fun RecordingStatusDialog(
     status: String?,
-    isRecording: Boolean,
+    isSpeaking: Boolean,
+    modifier: Modifier = Modifier,
     onDone: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null
 ) {
     Dialog(
-        onDismissRequest = { onCancel?.invoke() }
+        onDismissRequest = { onCancel?.invoke() },
+        properties = DialogProperties(
+            dismissOnClickOutside = false
+        )
     ) {
         Card(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
-                .height(375.dp)
                 .padding(8.dp),
             shape = RoundedCornerShape(16.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -166,9 +253,11 @@ fun RecordingStatusDialog(
                 )
                 Spacer(modifier = Modifier.padding(vertical = 16.dp))
                 AnimatedIllustration(
-                    modifier = Modifier.size(120.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .aspectRatio(1f),
                     illustration = R.raw.recording_animation,
-                    isPlaying = isRecording
+                    isPlaying = isSpeaking
                 )
                 Spacer(modifier = Modifier.padding(vertical = 8.dp))
                 Text(
@@ -200,6 +289,45 @@ fun RecordingStatusDialog(
     }
 }
 
+@Composable
+private fun CustomDetailDialog(
+    description: String,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Dialog(
+        onDismissRequest = { onDismiss() }
+    ) {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text(
+                text = description,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                fontSize = 12.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Suppress("UnusedPrivateMember") // DNF: silent in config
+@Preview
+@Composable
+private fun CustomDetailDialogPreview() {
+    VeViewTheme {
+        CustomDetailDialog(
+            description = "This is a detailed description for the instruction item.",
+            onDismiss = {}
+        )
+    }
+}
+
 @Suppress("UnusedPrivateMember") // DNF: silent in config
 @Preview
 @Composable
@@ -207,7 +335,7 @@ private fun RecordingStatusDialogPreview() {
     VeViewTheme {
         RecordingStatusDialog(
             status = "Recording...",
-            isRecording = true,
+            isSpeaking = true,
             onDone = {},
             onCancel = {}
         )
@@ -215,12 +343,30 @@ private fun RecordingStatusDialogPreview() {
 }
 
 @Suppress("UnusedPrivateMember") // DNF: silent in config
-@Preview(showBackground = true)
+@PreviewScreenSizes
+@PreviewDynamicColors
 @Composable
 private fun VoiceReviewerContentPreview() {
     VeViewTheme {
         VoiceReviewerContent(
             ctaLabel = "Record",
+            reviewInstructionToDetail = listOf(
+                ReviewInstructionItem(
+                    0,
+                    R.string.recording_instruction_1,
+                    R.string.recording_instruction_1
+                ),
+                ReviewInstructionItem(
+                    1,
+                    R.string.recording_instruction_2,
+                    R.string.recording_instruction_2
+                ),
+                ReviewInstructionItem(
+                    2,
+                    R.string.recording_instruction_3,
+                    R.string.recording_instruction_3
+                )
+            ),
             onStart = {}
         )
     }

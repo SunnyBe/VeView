@@ -8,7 +8,7 @@
 
 # --- Keep Class Under Test ---
 # The primary implementation class being tested.
--keep class com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl { *; }
+-keep class com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl { *; }
 
 # --- Keep Mocked Interfaces and Factories ---
 # These interfaces are mocked in tests to isolate the class under test from its dependencies.
@@ -35,15 +35,5 @@
 -keep class kotlin.reflect.jvm.internal.** { *; }
 -keep class kotlin.Metadata { *; }
 
-# --- Keep the SDK's Internal Data Class ---
-# Protects our internal SdkAnalysisResponse from being obfuscated, ensuring
-# Moshi can find its fields and constructor at runtime.
--keep,allowobfuscation class com.veview.veviewsdk.data.analysis.SdkAnalysisResponse {
-    public <init>(...);
-}
--keepclassmembers,allowobfuscation class com.veview.veviewsdk.data.analysis.SdkAnalysisResponse {
-    <fields>;
-    <methods>;
-}
 
-
+-keep public class com.veview.veviewsdk.annotations.** { *; }

@@ -3,6 +3,8 @@ package com.veview.veviewsdk
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.veview.veviewsdk.data.configs.VoiceReviewConfig
+import com.veview.veviewsdk.data.voicereview.VoiceReviewState
+import com.veview.veviewsdk.data.voicereview.VoiceReviewerImpl
 import com.veview.veviewsdk.domain.contracts.AnalysisEngine
 import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.ConfigProvider
@@ -10,8 +12,6 @@ import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.domain.model.AudioRecordState
 import com.veview.veviewsdk.domain.model.ReviewContext
 import com.veview.veviewsdk.domain.model.VoiceReview
-import com.veview.veviewsdk.domain.reviewer.VoiceReviewerImpl
-import com.veview.veviewsdk.presentation.voicereview.VoiceReviewState
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -181,7 +181,6 @@ class VoiceReviewerImplTest {
             emit(AudioRecordState.DataChunkReady(fakeAudioFile, byteArrayOf(1, 2, 3), 5.seconds))
             // No Done state to simulate ongoing recording
             delay(1.seconds)
-//            emit(AudioRecordState.Done(fakeAudioFile))
         }
 
         // Act

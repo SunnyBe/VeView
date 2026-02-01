@@ -17,7 +17,7 @@
 
         <profileable android:shell="true"/>
         <activity
-            android:name=".voicereview.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.VeView">
             <intent-filter>
