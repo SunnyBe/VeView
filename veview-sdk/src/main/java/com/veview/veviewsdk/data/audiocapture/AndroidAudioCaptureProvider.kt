@@ -10,15 +10,18 @@ import com.veview.veviewsdk.domain.contracts.AudioCaptureProvider
 import com.veview.veviewsdk.domain.contracts.DispatcherProvider
 import com.veview.veviewsdk.domain.model.AudioRecordState
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Clock.System
@@ -47,16 +50,21 @@ internal class AndroidAudioCaptureProvider(
     private var isRecording = AtomicBoolean(false)
     private var recordingFile: File? = null // Keep track of the file
 
+    @Suppress("SwallowedException")
     @RequiresPermission(Manifest.permission.RECORD_AUDIO)
     override fun startRecording(
         fileName: String,
         config: VoiceReviewConfig,
         duration: Duration
-    ): Flow<AudioRecordState> = flow {
+    ): Flow<AudioRecordState> = callbackFlow {
         Timber.tag(LOG_TAG).d("Current Config: $config")
-        check(isRecording.compareAndSet(false, true)) { "There is an ongoing recording." }
 
-        emit(AudioRecordState.Starting) // Emit starting state
+        if (!isRecording.compareAndSet(false, true)) {
+            close(IllegalStateException("There is an ongoing recording."))
+            return@callbackFlow
+        }
+
+        trySend(AudioRecordState.Starting) // Emit starting state
 
         val outputFile = generateOutputFile(config, fileName)
 
@@ -67,62 +75,77 @@ internal class AndroidAudioCaptureProvider(
             config.audioFormat
         )
         val bufferSize = minBufferSize * 2 // Use double the minimum buffer size for safety
+
         check(bufferSize > 0) { "Invalid buffer size calculated: $bufferSize" }
 
-        audioRecord = createAudioRecordInstance(config, bufferSize)
+        val record = createAudioRecordInstance(config, bufferSize)
+        audioRecord = record
 
         val fileOutputStream = FileOutputStream(outputFile, true)
         val audioBuffer = ByteArray(bufferSize)
-
-        audioRecord?.startRecording()
         val startTime = System.now() // Note start time
-        emit(AudioRecordState.Started(outputFile, startTime))
+
+        record.startRecording()
+        trySend(AudioRecordState.Started(outputFile, startTime))
         Timber.tag(LOG_TAG).d("Started audio recording at $startTime.")
 
-        try {
-            // Waiting for audio data and emitting chunks
-            while (scope.isActive && isRecording.get() &&
-                (System.now() - startTime) < duration
-            ) {
-                val readSize = audioRecord?.read(audioBuffer, 0, audioBuffer.size) ?: -1
-                if (readSize > 0) {
-                    val validData = audioBuffer.copyOf(readSize)
-                    val emissionTime = System.now()
-                    emit(
-                        AudioRecordState.DataChunkReady(
-                            outputFile,
-                            validData,
-                            emissionTime - startTime
+        val job = launch(dispatcherProvider.io) {
+            try {
+                while (isActive && isRecording.get() && (System.now() - startTime) < duration) {
+                    val readSize = record.read(audioBuffer, 0, audioBuffer.size)
+
+                    if (readSize < 0) {
+                        throw IllegalStateException("AudioRecord error code: $readSize")
+                    }
+                    if (readSize > 0) {
+                        val validData = audioBuffer.copyOf(readSize)
+                        fileOutputStream.write(validData)
+
+                        trySend(
+                            AudioRecordState.DataChunkReady(
+                                outputFile,
+                                validData,
+                                System.now() - startTime
+                            )
                         )
-                    )
-                    fileOutputStream.write(validData)
+                    }
                 }
+            } catch (cause: IOException) {
+                close(cause)
+            } catch (cause: IllegalStateException) {
+                close(cause)
+            } finally {
+                isRecording.set(false)
+
+                try { record.stop() } catch (e: IllegalStateException) { /* logged ignore */ }
+
+                try {
+                    fileOutputStream.close()
+                    trySend(AudioRecordState.Stopped(System.now()))
+                    WavFileUtil.updateWavHeader(outputFile)
+                    trySend(AudioRecordState.Done(outputFile))
+                } catch (e: IOException) {
+                    Timber.tag(LOG_TAG).e(e, "Failed to finalize audio file.")
+                }
+                if (!channel.isClosedForSend) channel.close()
             }
-        } finally {
-            Timber.d("Audio recording loop completed at ${System.now()}. Cleaning up resources.")
-            isRecording.set(false)
-            audioRecord?.stop()
-            audioRecord?.release()
-            audioRecord = null
-            fileOutputStream.close()
         }
 
-        emit(AudioRecordState.Stopped(System.now()))
-
-        recordingFile?.let {
-            WavFileUtil.updateWavHeader(it)
-            Timber.d("WAV header updated for file: ${it.absolutePath}")
-            emit(AudioRecordState.Done(it))
+        awaitClose {
+            Timber.tag(LOG_TAG).d("callbackFlow closing, cleaning up.")
+            isRecording.set(false)
+            job.cancel()
+            record.release()
+            audioRecord = null
         }
     }.catch { cause ->
         Timber.e(cause, "Error in audio recording flow.")
         isRecording.set(false)
-        if (cause !is CancellationException) {
-            val exception =
-                AudioRecordingException(cause.message, cause)
-            emit(AudioRecordState.Error(exception))
-        } else {
+        if (cause is CancellationException) {
             throw cause // Stop subsequent processing on cancellation
+        } else {
+            val exception = AudioRecordingException(cause.message, cause)
+            emit(AudioRecordState.Error(exception))
         }
     }
         .flowOn(dispatcherProvider.default)

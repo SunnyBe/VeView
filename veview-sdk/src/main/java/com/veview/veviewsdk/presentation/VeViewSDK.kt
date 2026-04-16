@@ -140,6 +140,7 @@ class VeViewSDK private constructor(
 
     companion object {
         private const val LOG_TAG = "VeViewSDK"
+
         @Volatile
         private var instance: VeViewSDK? = null
         private val veviewLock = Any()
